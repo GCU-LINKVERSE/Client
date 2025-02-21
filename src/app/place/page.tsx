@@ -188,6 +188,7 @@ export default function Home() {
   
       return data.length ? data : [];
     } catch (error) {
+      console.log('error :',error)
       return [];
     }
   };

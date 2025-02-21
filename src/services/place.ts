@@ -75,6 +75,7 @@ export const fetchFilteredCategoryData = async (
 
     return result.data.content;
   } catch (error) {
+    console.log('error :',error)
     return [];
   }
 };
@@ -108,6 +109,11 @@ export const toggleLike = async (
         const body = createRequestBody(placeId); 
     
         const response = await sendToggleLikeRequest(url, body);
+
+        if (!response.ok) {
+          console.error(`Failed to toggle like status for placeId ${placeId}. HTTP Status: ${response.status}`);
+          throw new Error(`Failed to toggle like status. Status: ${response.status}`);
+          }
     
         return !liked;
     } catch (error) {
