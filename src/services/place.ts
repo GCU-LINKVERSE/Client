@@ -59,7 +59,7 @@ export const fetchFilteredCategoryData = async (
     queryParams.append("page", String(page)); 
 
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined) {
+      if (value == true) {
         queryParams.append(key, String(value));
       }
     });
