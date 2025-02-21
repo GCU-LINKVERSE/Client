@@ -149,7 +149,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
           }}
           onClick={() => {
             if (selectedPlace.phoneNumber) {
-              window.location.href = `tel:${selectedPlace.phoneNumber}`;
+              window.location.href = `${selectedPlace.phoneNumber}`;
             }
           }}
           disabled={!selectedPlace.phoneNumber} 
