@@ -743,7 +743,7 @@ export default function TimeStamp({
       })
       // console.log('initialConfirmedTimeSlots', initialConfirmedTimeSlots)
     } else {
-      // console.log('groupedDate', groupedDate)
+      console.log('groupedDate', groupedDate)
       const groupedArray = groupedDate?.[currentPage]?.date ?? []
       groupedArray.forEach((date, col) => {
         const dateString = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
@@ -1040,8 +1040,7 @@ export default function TimeStamp({
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
                           className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"
-                          onMouseDown={(event) => {
-                            event.stopPropagation() // 버블링 방지
+                          onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
                               colIndex,
@@ -1054,8 +1053,7 @@ export default function TimeStamp({
                       {!cellStatus.isConfirmed && cellStatus.isEndCell && (
                         <div
                           className="absolute -bottom-[5px] right-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move "
-                          onMouseDown={(event) => {
-                            event.stopPropagation() // 버블링 방지
+                          onMouseDown={() => {
                             handleMouseDown(
                               rowIndex,
                               colIndex,

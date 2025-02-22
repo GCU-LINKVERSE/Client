@@ -7,9 +7,6 @@ export interface ProfileSmallProps {
     id: number
     name: string
     image: string
-    scheduleComplete?: string
-    locationComplete?: string
-    type: string
   }[]
   maxDisplayImg?: number // 선택적으로 처리할 수 있게 하기 위해 물음표 사용, 물음표 없이 number로 선언되면 무조건 props로 넘겨받아야 함
   maxDisplayNum?: number
@@ -34,17 +31,8 @@ export function ProfileSmall({
           <div
             key={profile.id}
             className="relative h-8 w-8 rounded-[20px] border-2 border-[#9562fa] overflow-hidden"
-            style={{
-              zIndex: displayProfiles.length + index,
-            }}
           >
             {/* 프로필 이미지 */}
-            {profile.scheduleComplete === 'INCOMPLETE' ||
-            profile.scheduleComplete === 'ONGOING' ? (
-              <div className="absolute inset-0 bg-[#afafaf]/80 rounded-[20px] z-10"></div>
-            ) : (
-              <></>
-            )}
             <Image src={profile.image} alt={profile.name} fill sizes="32px" />
             {/* 다섯 번째 프로필 이미지에 회색 배경, 더보기 아이콘 */}
             {viewMore && index === maxDisplayImg - 1 && (

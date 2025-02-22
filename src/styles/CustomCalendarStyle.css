@@ -73,11 +73,11 @@
   border-radius: 0 0 50% 50%;
 }
 
-/* [data-mode='multiple']
+[data-mode='multiple']
   .calendar-row:has(.calendar-day-selected):last-child
   .calendar-day-selected {
   border-radius: 0 0 50% 50%;
-} */
+}
 
 [data-mode='range'] .calendar-cell:last-child .calendar-day-range-middle {
   border-radius: 0 50% 50% 0;
@@ -133,9 +133,5 @@
 }
 
 [data-mode='single'] .calendar-day-selected {
-  border-radius: 50%;
-}
-
-.weekday-one {
   border-radius: 50%;
 }

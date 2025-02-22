@@ -18,7 +18,7 @@ export interface LetsmeetCardProps {
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string; type: string }[]
+  participants: { id: number; name: string; image: string }[]
 }
 
 export function LetsmeetCard({

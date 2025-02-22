@@ -34,11 +34,9 @@ export default function CustomModal({
         <div
           className={cn('relative w-[280px]', contentPadding ? 'p-6' : 'p-0')}
         >
-          {contentPadding && (
-            <DialogClose className="absolute right-6 focus:outline-none z-[3000]">
-              <X></X>
-            </DialogClose>
-          )}
+          <DialogClose className="absolute right-6 focus:outline-none z-[3000]">
+            <X></X>
+          </DialogClose>
           <DialogTitle></DialogTitle>
           {children}
         </div>

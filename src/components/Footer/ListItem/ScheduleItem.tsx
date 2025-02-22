@@ -25,7 +25,7 @@ export function ScheduleItem({
 
   const handleDeleteModal = () => {
     setIsSelectDeleteOpen(!isSelectDeleteOpen)
-    // console.log('모달 열기')
+    console.log('모달 열기')
   }
 
   // 실제 삭제 api 연동할 함수

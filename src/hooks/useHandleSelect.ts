@@ -47,8 +47,8 @@ export function useHandleSelect(): UseHandleSelectReturn {
               new Set(formattedDates.map(([, day]) => day)),
             ) as DayOfWeek[]
             setSelected(selectedDays)
-            // console.log('[multiple] 선택된 날짜:', formattedDates)
-            // console.log('[multiple] 선택된 요일:', selectedDays)
+            console.log('[multiple] 선택된 날짜:', formattedDates)
+            console.log('[multiple] 선택된 요일:', selectedDays)
           } else if ('from' in selection && selection.from) {
             // range mode 처리
             setMode('range')
@@ -60,11 +60,11 @@ export function useHandleSelect(): UseHandleSelectReturn {
               })
               const formattedDates = dates.map(formatDateInfo)
               setStringDates(formattedDates)
-              // console.log('[range] 선택된 날짜:', formattedDates)
+              console.log('[range] 선택된 날짜:', formattedDates)
             } else {
               const startDayOnlyInfo = formatDateInfo(selection.from)
               setStringDates([startDayOnlyInfo])
-              // console.log('[range] 첫 날짜만 선택:', startDayOnlyInfo)
+              console.log('[range] 첫 날짜만 선택:', startDayOnlyInfo)
             }
           } else if (selection instanceof Date) {
             // single 모드 처리
@@ -72,13 +72,13 @@ export function useHandleSelect(): UseHandleSelectReturn {
             setSelected(null)
             const formattedDate = formatDateInfo(selection)
             setStringDates([formattedDate])
-            // console.log('[single] 선택된 날짜:', formattedDate)
+            console.log('[single] 선택된 날짜:', formattedDate)
           }
         } else {
           setStringDates([])
           setMode('range')
           setSelected([])
-          // console.log('No date selected')
+          console.log('No date selected')
         }
       }, 0)
     },

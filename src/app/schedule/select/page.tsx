@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Title from '@/components/Header/Title'
 import SelectedDays from '@/components/Header/SelectedDays'
 import TimeStamp from '@/components/Body/TimeStamp'
@@ -10,9 +10,6 @@ import CustomModal from '@/components/Modals/CustomModal'
 import { ProfileLarge } from '@/components/Profiles/ProfileLarge'
 import MembersDefault from '@/components/Modals/MembersDefault'
 import { useRouter } from 'next/navigation'
-import { useSurveyStore } from '@/store/surveyStore'
-import { useGroupStore } from '@/store/groupStore'
-import axios from 'axios'
 
 interface SelectedDate {
   year: number
@@ -39,182 +36,69 @@ interface GroupedDate {
 
 interface ScheduleData {
   title: string // 일정 이름
+  userId: number // 사용자 ID
+  groupId: number // 그룹 ID
   mode: string
   selected: string[] | null
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
 export default function Page() {
-  const { selectedSurveyId } = useSurveyStore()
-  const { selectedGroupId } = useGroupStore()
-  // console.log('zustand에서 가져온 surveyId', selectedSurveyId)
   const [title, setTitle] = useState('제목 없는 일정')
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
   const [startTime, setStartTime] = useState<string | null>(null)
   const [endTime, setEndTime] = useState<string | null>(null)
 
-  const [isOpen, setIsOpen] = useState(false)
-  const [dateCounts, setDateCounts] = useState<number[]>([])
-  const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
-  const [surveyData, setSurveyData] = useState<ScheduleData[]>([])
-  const [confirmedData, setConfirmedData] = useState<
-    { date: string; timeSlots: { start: string; end: string }[] }[]
-  >([])
+  const confirmedData = [
+    {
+      date: '2024-12-31',
+      timeSlots: [{ start: '03:00', end: '09:30' }],
+    },
+    {
+      date: '2024-01-03',
+      timeSlots: [{ start: '06:30', end: '12:00' }],
+    },
+    {
+      date: '2024-01-05',
+      timeSlots: [{ start: '06:00', end: '12:00' }],
+    },
+    {
+      date: '2024-01-06',
+      timeSlots: [{ start: '06:00', end: '12:00' }],
+    },
+    // {
+    //   date: '2024-01-06',
+    //   timeSlots: [{ start: '03:00', end: '09:30' }],
+    // },
+    // {
+    //   date: '2024-01-13',
+    //   timeSlots: [{ start: '06:00', end: '12:00' }],
+    // },
+    // {
+    //   date: '2024-02-08',
+    //   timeSlots: [{ start: '06:00', end: '12:00' }],
+    // },
+    // {
+    //   date: '2024-03-17',
+    //   timeSlots: [{ start: '06:00', end: '12:00' }],
+    // },
+  ]
+
   const [dateTime, setDateTime] =
     useState<{ date: string; timeSlots: { start: string; end: string }[] }[]>(
       confirmedData,
     )
-  const [participants, setParticipants] = useState<
-    {
-      id: number
-      name: string
-      image: string
-      type: string
-      scheduleComplete: string
-    }[]
-  >([])
-  const [isPurple, setIsPurple] = useState(false)
+  const [isPurple, setIsPurple] = useState(confirmedData.length > 0)
+  const [isOpen, setIsOpen] = useState(false)
+  const [dateCounts, setDateCounts] = useState<number[]>([])
+  const [groupedDate, setGroupedDate] = useState<GroupedDate[]>([])
 
   const DAYS_PER_PAGE = 7
   const highlightedIndex =
     highlightedCol !== null
       ? highlightedCol - currentPage * DAYS_PER_PAGE
       : null
-
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
-
-  const getMemberList = useCallback(async () => {
-    try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/group-members/List/${selectedGroupId}`,
-        {
-          withCredentials: true, // 쿠키 전송을 위해 필요
-        },
-      )
-      console.log('참여자 리스트 get 성공', res.data)
-      setParticipants(res.data.data)
-    } catch (error) {
-      console.log('참여자 리스트 get 실패', error)
-    }
-  }, [API_BASE_URL, selectedGroupId])
-
-  useEffect(() => {
-    if (!selectedGroupId) return
-    // console.log('groupId', selectedGroupId)
-    getMemberList()
-  }, [API_BASE_URL, getMemberList, selectedGroupId])
-
-  const patchApi = useMemo(
-    () => ({
-      updateMemberState: async (groupId: number, state: string) => {
-        try {
-          const response = await axios.patch(
-            `${API_BASE_URL}/api/group-members/schedule`,
-            { groupId, state },
-            { withCredentials: true },
-          )
-          // console.log('status', state)
-          console.log('멤버 상태 업데이트 성공', response)
-          getMemberList()
-        } catch (error) {
-          console.log('멤버 상태 업데이트 실패', error)
-        }
-      },
-    }),
-    [API_BASE_URL, getMemberList],
-  )
-
-  const selectApi = {
-    createTimeSlot: async (
-      surveyId: number,
-      slotDate: string,
-      startTime: string,
-      endTime: string,
-    ) => {
-      // console.log('surveyId', surveyId)
-      try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/timeslot/${surveyId}`,
-          {
-            slotDate: slotDate,
-            startTime: startTime,
-            endTime: endTime,
-          },
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-          },
-        )
-        // console.log('타임슬롯', slotDate, startTime, endTime)
-        console.log('타임슬롯 생성 성공', response)
-        if (selectedGroupId) {
-          patchApi.updateMemberState(selectedGroupId, 'ONGOING')
-        }
-      } catch (error) {
-        console.log('타임슬롯 생성 실패', error)
-      }
-    },
-  }
-
-  useEffect(() => {
-    if (!selectedSurveyId) return
-    // console.log('surveyId', selectedSurveyId)
-    const getSurveyData = async () => {
-      try {
-        const res = await axios.get(
-          `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-          },
-        )
-
-        console.log('survey data', res.data.data)
-        setSurveyData([res.data.data])
-      } catch (error) {
-        console.log('survey data get 실패', error)
-      }
-    }
-
-    getSurveyData()
-  }, [API_BASE_URL, selectedSurveyId])
-
-  useEffect(() => {
-    if (!selectedSurveyId) return
-    // console.log('surveyId', selectedSurveyId)
-    const getSavedSlot = async () => {
-      try {
-        const res = await axios.get(
-          `${API_BASE_URL}/api/timeslot/${selectedSurveyId}/select`,
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-          },
-        )
-        console.log('Saved slot data get 성공', res.data)
-        setConfirmedData(res.data.data)
-        if (res.data.data.length > 0 && selectedGroupId) {
-          setIsPurple(true)
-          patchApi.updateMemberState(selectedGroupId, 'ONGOING')
-        }
-        if (res.data.data.length == 0 && selectedGroupId) {
-          patchApi.updateMemberState(selectedGroupId, 'INCOMPLETE')
-        }
-      } catch (error) {
-        console.log('Saved slot data get 실패', error)
-      }
-    }
-
-    getSavedSlot()
-  }, [API_BASE_URL, patchApi, selectedGroupId, selectedSurveyId])
-
-  useEffect(() => {
-    setDateTime(confirmedData)
-  }, [confirmedData])
-
-  const patchCompletedStatus = () => {
-    if (selectedGroupId) {
-      patchApi.updateMemberState(selectedGroupId, 'COMPLETED')
-    }
-  }
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
@@ -301,9 +185,8 @@ export default function Page() {
     setIsOpen(true)
   }
 
-  const getDateTime = async (date: string, start: string, end: string) => {
+  const getDateTime = (date: string, start: string, end: string) => {
     setDateTime((prev) => {
-      // console.log('setDateTime 호출', prev)
       const existingDateIndex = prev.findIndex((item) => item.date === date)
       let newEntry = null
 
@@ -363,33 +246,15 @@ export default function Page() {
           timeSlots.push(newSlot)
           newEntry = { date: date, timeSlots: [newSlot] }
         }
-
+        // console.log(date)
         timeSlots.sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
 
-        const postTimeSlot = {
-          slotDate: date,
-          startTime: newEntry.timeSlots[0].start,
-          endTime: newEntry.timeSlots[0].end,
-        }
-
-        if (selectedSurveyId !== null) {
-          // console.log('Post할 항목:', postTimeSlot)
-          selectApi.createTimeSlot(
-            selectedSurveyId,
-            postTimeSlot.slotDate,
-            postTimeSlot.startTime,
-            postTimeSlot.endTime,
-          )
-        }
-
         updated[existingDateIndex].timeSlots = timeSlots
+        // console.log('새로 추가된 항목:', newEntry)
         return updated
       } else {
         newEntry = { date: date, timeSlots: [{ start, end }] }
-        if (selectedSurveyId !== null) {
-          // console.log('Post할 항목:', newEntry)
-          selectApi.createTimeSlot(selectedSurveyId, date, start, end)
-        }
+        // console.log('새로 추가된 항목:', newEntry)
         return [...prev, newEntry]
       }
     })
@@ -398,7 +263,7 @@ export default function Page() {
   }
 
   useEffect(() => {
-    // console.log(`Updated dateTimeData:`, dateTime)
+    console.log(`Updated dateTimeData:`, dateTime)
   }, [dateTime])
 
   const weekdayMap: { [key: string]: string } = {
@@ -411,23 +276,67 @@ export default function Page() {
     sun: '일',
   }
 
-  function convertToSelectedDates(surveyData: ScheduleData[]): SelectedDate[] {
-    return (
-      surveyData[0]?.date?.map(([fullDate, weekday]) => {
+  function convertToSelectedDates(
+    scheduleData: ScheduleData[],
+  ): SelectedDate[] {
+    return scheduleData.flatMap((schedule) =>
+      schedule.date.map(([fullDate, weekday]) => {
         const [year, month, day] = fullDate.split('-').map(Number)
         return {
           year,
           month,
-          day,
+          day: day,
           weekday: weekdayMap[weekday],
         }
-      }) || []
+      }),
     )
   }
 
-  const selectedDates: SelectedDate[] = convertToSelectedDates(surveyData)
-  const mode = surveyData[0]?.mode
-  const dayofWeek = surveyData[0]?.selected
+  const scheduleData: ScheduleData[] = [
+    {
+      title: '팀플 대면 모임',
+      userId: 2,
+      groupId: 1,
+      // mode: 'week',
+      // selected: ['mon', 'wed', 'fri'],
+      // date: [
+      //   ['2024-01-06', 'mon'],
+      //   ['2024-02-08', 'wed'],
+      //   ['2024-01-13', 'mon'],
+      //   ['2024-02-15', 'wed'],
+      //   ['2024-01-20', 'mon'],
+      //   ['2024-02-22', 'wed'],
+      //   ['2024-01-27', 'mon'],
+      //   ['2024-03-03', 'fri'],
+      //   ['2024-03-10', 'fri'],
+      //   ['2024-03-17', 'fri'],
+      //   ['2024-03-24', 'fri'],
+      //   ['2024-03-31', 'fri'],
+      // ],
+      mode: 'range',
+      selected: null,
+      date: [
+        ['2024-12-30', 'mon'],
+        ['2024-12-31', 'tue'],
+        ['2024-01-01', 'wed'],
+        ['2024-01-02', 'thu'],
+        ['2024-01-03', 'fri'],
+        ['2024-01-04', 'sat'],
+        ['2024-01-05', 'sun'],
+        ['2024-01-06', 'mon'],
+        ['2024-01-07', 'tue'],
+        ['2024-01-08', 'wed'],
+        ['2024-01-09', 'thu'],
+        ['2024-01-10', 'fri'],
+        ['2024-01-11', 'sat'],
+        ['2024-01-12', 'sun'],
+      ],
+    },
+  ]
+
+  const selectedDates: SelectedDate[] = convertToSelectedDates(scheduleData)
+  const mode = scheduleData[0].mode
+  const dayofWeek = scheduleData[0].selected
   const month =
     mode === 'range'
       ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
@@ -435,51 +344,88 @@ export default function Page() {
         : `${selectedDates[currentPage * DAYS_PER_PAGE]?.month}월`
       : `${groupedDate[currentPage]?.date?.[highlightedIndex ?? 0]?.month ?? groupedDate[currentPage]?.date?.[0]?.month}월`
 
-  // console.log('selectedGroupID', selectedGroupId)
+  const scheduleModalData = [
+    {
+      id: 2,
+      number: 2,
+      startDate: '12월 30일',
+      startTime: '18:00',
+      endTime: '20:00',
+      participants: [
+        {
+          id: 1,
+          name: '나',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 2,
+          name: '김태엽',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 3,
+          name: '지유진',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 4,
+          name: '이소룡',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 5,
+          name: '박진우',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 6,
+          name: '이예지',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 7,
+          name: '조성하',
+          image: '/sampleProfile.png',
+          isScheduleSelect: true,
+        },
+        {
+          id: 8,
+          name: '성윤정',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 9,
+          name: '김나영',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+        {
+          id: 10,
+          name: '이채연',
+          image: '/sampleProfile.png',
+          isScheduleSelect: false,
+        },
+      ],
+    },
+  ]
 
   const router = useRouter()
   // 완료 버튼 누르면 나오는 일정 입력 중 모달
   const [isToDecideModal, setIsToDecideModal] = useState(false)
-  const [isNextOpen, setIsNextOpen] = useState(false)
-
-  const otherParticipants = participants.filter((p) => !p.type.includes('&my'))
-
-  const allOthersCompleted = otherParticipants.every(
-    (p) => p.scheduleComplete === 'COMPLETED',
-  )
-
   const handleToDecideModal = () => {
-    // getMemberList()
     if (isPurple) {
-      patchCompletedStatus()
-      if (isGroupLeader && allOthersCompleted) {
-        router.push('/schedule/decide')
-      } else {
-        // getMemberList()
-        setIsToDecideModal(true)
-        setIsExpanded(false)
-        setIsDanger(false)
-      }
-    } else {
-      // getMemberList()
-      setIsNextOpen(true)
-    }
-  }
-
-  const handleNextModal = () => {
-    patchCompletedStatus()
-    if (isGroupLeader && allOthersCompleted) {
-      router.push('/schedule/decide')
-    }
-    setIsNextOpen(false)
-    // getMemberList()
-    setIsToDecideModal(true)
-  }
-
-  const handleOpenChange = () => {
-    setIsToDecideModal(!isToDecideModal)
-    if (isToDecideModal) {
+      setIsToDecideModal(!isToDecideModal)
       setIsExpanded(false)
+      setIsDanger(false)
+    } else {
+      setIsNextOpen(!isNextOpen)
     }
   }
 
@@ -492,8 +438,8 @@ export default function Page() {
   // onNext 버튼 누르면 경고 문구 출력 상태 관리
   const [isDanger, setIsDanger] = useState(false)
   const handleDanger = () => {
-    const hasIncompleteMember = participants.some(
-      (participant) => !participant.scheduleComplete,
+    const hasIncompleteMember = scheduleModalData[0].participants.some(
+      (participant) => !participant.isScheduleSelect,
     )
     setIsDanger(hasIncompleteMember ? !isDanger : isDanger)
 
@@ -511,37 +457,14 @@ export default function Page() {
       router.push('/schedule/decide')
     }
   }
-  const [isGroupLeader, setIsGroupLeader] = useState(false)
 
-  useEffect(() => {
-    if (!selectedGroupId) {
-      setIsGroupLeader(false) // selectedGroupId가 없을 때 초기화
-      return
-    }
-    // console.log('groupId', selectedGroupId)
-    const getGroupLeader = async () => {
-      try {
-        const res = await axios.get(
-          `${API_BASE_URL}/api/members/creator/check/${selectedGroupId}`,
-          {
-            withCredentials: true, // 쿠키 전송을 위해 필요
-          },
-        )
-        console.log('모임장 여부 get 성공', res.data)
-        setIsGroupLeader(res.data.data)
-      } catch (error) {
-        console.log('모임장 여부 get 실패', error)
-      }
-    }
-
-    getGroupLeader()
-  }, [API_BASE_URL, selectedGroupId])
+  const [isNextOpen, setIsNextOpen] = useState(false)
 
   return (
     <div>
       <Title
         buttonText={'완료'}
-        initialTitle={surveyData[0]?.title || title}
+        initialTitle={scheduleData[0]?.title || title}
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
         onClickTitleButton={handleToDecideModal}
@@ -594,95 +517,52 @@ export default function Page() {
           />
         </div>
       </SelectedBottom>
-      {isGroupLeader ? (
-        !allOthersCompleted && (
-          <CustomModal
-            open={isToDecideModal}
-            onOpenChange={handleOpenChange}
-            onNext={() => {
-              // patchCompletedStatus()
-              handleDanger()
-            }}
-            isFooter={true}
-            footerText={'최적의 일정 찾기'}
-          >
-            <div className="flex flex-col item-center justify-center">
-              <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
-                함께하는 친구들이
-                <br /> 시간을 입력하고 있어요!
-              </div>
-              <div className="flex item-center justify-center mb-[12px]">
-                <ProfileLarge
-                  profiles={participants}
-                  onExpandChange={handleExpandChange}
-                />
-              </div>
-              {isDanger ? (
-                <div className="text-center text-[#ff0000] text-xs font-medium ">
-                  아직 입력을 마치지 않은 친구가 있어요!
-                  <br />
-                  그래도 진행하시겠어요?
-                </div>
-              ) : (
-                <div className="text-center text-[#afafaf] text-xs font-medium">
-                  입력을 완료한 친구의 프로필만 활성화돼요!
-                </div>
-              )}
-              <div>
-                {isExpanded && (
-                  <MembersDefault
-                    blackText={false}
-                    title={surveyData[0]?.title || title}
-                    members={participants}
-                    memberCount={participants.length}
-                  />
-                )}
-              </div>
+      <CustomModal
+        open={isToDecideModal}
+        onOpenChange={handleToDecideModal}
+        onNext={handleDanger}
+        isFooter={true}
+        footerText={'최적의 일정 찾기'}
+      >
+        <div className="flex flex-col item-center justify-center">
+          <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
+            함께하는 친구들이
+            <br /> 시간을 입력하고 있어요!
+          </div>
+          <div className="flex item-center justify-center mb-[12px]">
+            <ProfileLarge
+              key={scheduleModalData[0].id}
+              profiles={scheduleModalData[0].participants}
+              onExpandChange={handleExpandChange}
+            />
+          </div>
+          {isDanger ? (
+            <div className="text-center text-[#ff0000] text-xs font-medium ">
+              아직 입력을 마치지 않은 친구가 있어요!
+              <br />
+              그래도 진행하시겠어요?
             </div>
-          </CustomModal>
-        )
-      ) : (
-        <CustomModal
-          open={isToDecideModal}
-          onOpenChange={handleOpenChange}
-          onNext={() => {
-            // patchCompletedStatus()
-            router.push('/schedule')
-          }}
-          isFooter={true}
-          footerText={'확정된 일정은 곧 안내해드릴게요!'}
-        >
-          <div className="flex flex-col item-center justify-center">
-            <div className="text-center text-[#1e1e1e] text-[18px] font-medium leading-[25px] mb-[24px]">
-              함께하는 친구들이
-              <br /> 시간을 입력하고 있어요!
-            </div>
-            <div className="flex item-center justify-center mb-[12px]">
-              <ProfileLarge
-                profiles={participants}
-                onExpandChange={handleExpandChange}
-              />
-            </div>
+          ) : (
             <div className="text-center text-[#afafaf] text-xs font-medium">
               입력을 완료한 친구의 프로필만 활성화돼요!
             </div>
-            <div>
-              {isExpanded && (
-                <MembersDefault
-                  blackText={false}
-                  title={surveyData[0]?.title || title}
-                  members={participants}
-                  memberCount={participants.length}
-                />
-              )}
-            </div>
+          )}
+          <div className="flex item-center justify-center">
+            {isExpanded && (
+              <MembersDefault
+                blackText={false}
+                title={title}
+                members={scheduleModalData[0].participants}
+                memberCount={scheduleModalData[0].participants.length}
+              />
+            )}
           </div>
-        </CustomModal>
-      )}
+        </div>
+      </CustomModal>
       <CustomModal
         open={isNextOpen}
-        onOpenChange={() => setIsNextOpen(!isNextOpen)}
-        onNext={handleNextModal}
+        onOpenChange={handleToDecideModal}
+        onNext={() => router.push('/schedule/decide')}
         isFooter={true}
         footerText={'다음으로'}
       >

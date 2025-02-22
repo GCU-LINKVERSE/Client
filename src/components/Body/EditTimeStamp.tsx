@@ -2,8 +2,6 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import '@/styles/TimeStamp.css'
-import axios from 'axios'
-import { useSurveyStore } from '@/store/surveyStore'
 
 interface TimeSlot {
   slotId: number
@@ -79,7 +77,6 @@ const indexToTime = (index: number) => {
 }
 
 export default function EditTimeStamp({
-  // selectedDates,
   currentPage,
   handleSelectedCol,
   getDateTime,
@@ -87,9 +84,9 @@ export default function EditTimeStamp({
   isBottomSheetOpen,
   handleTimeSelect,
   mode,
-  // dateCounts,
+  dateCounts,
   // handleActiveTime,
-  groupedDate,
+  // groupedDate,
 }: EditTimeStampProps) {
   const [selections] = useState<Selection[]>([])
   const [isResizing, setIsResizing] = useState(false)
@@ -99,67 +96,42 @@ export default function EditTimeStamp({
   )
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
-  // const [initialTouchRow] = useState<number | null>(null)
+  const [initialTouchRow] = useState<number | null>(null)
   const [sortedMockData, setSortedMockData] = useState<DateData[]>([]) // 정렬된 데이터를 상태로 관리
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
-  const { selectedSurveyId } = useSurveyStore()
 
-  const putTimeslotData = useCallback(
-    async (slotId: number, startTime: string, endTime: string) => {
-      try {
-        const response = await axios.put(
-          `${API_BASE_URL}/api/timeslot/${selectedSurveyId}/edit/${slotId}`,
-          {
-            startTime: startTime,
-            endTime: endTime,
-          },
-          {
-            withCredentials: true,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
+  const currentDates =
+    mode === 'range'
+      ? sortedMockData.slice(
+          currentPage * COLUMNS_PER_PAGE,
+          (currentPage + 1) * COLUMNS_PER_PAGE,
         )
-        console.log('타임슬롯 정보 수정 성공:', response.data)
-      } catch (error) {
-        console.error('타임슬롯 정보 수정 실패:', error)
-        return []
-      }
-    },
-    [API_BASE_URL, selectedSurveyId],
-  )
+      : (() => {
+          let startIndex = 0
+          let endIndex = 0
 
-  const currentDates = useMemo(() => {
-    if (mode === 'range') {
-      return sortedMockData.slice(
-        currentPage * COLUMNS_PER_PAGE,
-        (currentPage + 1) * COLUMNS_PER_PAGE,
-      )
-    } else {
-      if (!groupedDate[currentPage]) {
-        return []
-      }
-
-      const currentGroupData = groupedDate[currentPage].date || []
-      const matchedData = currentGroupData.map((dateInfo) => {
-        const formattedDate = `${dateInfo.year}-${String(dateInfo.month).padStart(2, '0')}-${String(dateInfo.day).padStart(2, '0')}`
-
-        return (
-          sortedMockData.find((data) => data.date === formattedDate) || {
-            date: formattedDate,
-            timeSlots: [],
+          // for (let i = 0; i <= currentPage; i++) {
+          //   startIndex = endIndex
+          //   endIndex = startIndex + (dateCounts[i] || 0)
+          //   // console.log('dataIndex:', dateCounts[i])
+          // }
+          for (let i = 0; i <= dateCounts.length; i++) {
+            const pageSize = dateCounts[i]
+            if (currentPage === i) {
+              endIndex = startIndex + pageSize
+              break
+            }
+            startIndex += pageSize
+            // console.log('dataIndex:', dateCounts[i])
           }
-        )
-      })
 
-      return matchedData
-    }
-  }, [mode, currentPage, groupedDate, sortedMockData])
+          // console.log('slicing', sortedMockData.slice(startIndex, endIndex))
+          return sortedMockData.slice(startIndex, endIndex)
+        })()
 
   const onColumnClick = useCallback(
     (colIndex: number, rowIndex: number) => {
       if (colIndex === -1 && rowIndex === -1) {
-        // console.log('oncolumnindex:', colIndex)
+        console.log('oncolumnindex:', colIndex)
         handleSelectedCol(colIndex, rowIndex)
         return
       }
@@ -201,12 +173,10 @@ export default function EditTimeStamp({
       return dateA.getTime() - dateB.getTime()
     })
     setSortedMockData(sortingData)
-    // console.log('sortingData:', sortingData)
+    console.log('sortingData:', sortingData)
   }, [mockSelectedSchedule])
 
   const currentSelections = useMemo(() => {
-    // console.log('셀렉트', selectionsByPage[currentPage])
-    // console.log('현재페이지', currentPage)
     return selectionsByPage[currentPage] || []
   }, [selectionsByPage, currentPage])
 
@@ -250,7 +220,7 @@ export default function EditTimeStamp({
 
     if (!clickedSlot) return
 
-    // console.log(schedule.date, clickedSlot?.start, '-', clickedSlot?.end)
+    console.log(schedule.date, clickedSlot?.start, '-', clickedSlot?.end)
 
     if (clickedSlot) {
       const startIdx = timeToIndex(clickedSlot.start)
@@ -284,9 +254,9 @@ export default function EditTimeStamp({
       })
 
       // 바텀시트 열기
-      // console.log('handleMouseClick')
+      console.log('handleMouseClick')
       handleSelectedCol(colIndex, rowIndex)
-      // console.log('colIndex', colIndex, 'rowIndex', rowIndex)
+      console.log('colIndex', colIndex, 'rowIndex', rowIndex)
 
       // 시간 정보 전달
       handleTimeSelect(
@@ -415,7 +385,7 @@ export default function EditTimeStamp({
 
       const schedule = currentDates[startCol]
       if (schedule) {
-        let selectedSlotId: number = -1
+        let selectedSlotId = null
 
         // 병합 및 업데이트
         const updatedTimeSlots = []
@@ -507,21 +477,16 @@ export default function EditTimeStamp({
           // console.log('mergedSelections:', mergedSelections)
 
           handleDateTimeSelect(String(startCol), mergedStartTime, mergedEndTime)
+          console.log('handleMouseUp')
           return {
             ...prev,
             [currentPage]: mergedSelections,
           }
         })
-        // if (selectedSlotId !== null) {
-        //   console.log('수정 호출 전')
-        //   putTimeslotData(selectedSlotId, mergedStartTime, mergedEndTime)
-        // }
 
-        // console.log(
-        //   `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
-        // )
-        // console.log('수정 호출 전')
-        putTimeslotData(selectedSlotId, mergedStartTime, mergedEndTime)
+        console.log(
+          `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
+        )
       }
 
       // 리사이징 상태 초기화
@@ -531,10 +496,10 @@ export default function EditTimeStamp({
     }
   }, [
     activeSelection,
-    currentDates,
-    putTimeslotData,
     currentPage,
+    currentDates,
     handleDateTimeSelect,
+    setSelectionsByPage,
   ])
 
   const handleTouchClick = (rowIndex: number, colIndex: number) => {
@@ -614,7 +579,7 @@ export default function EditTimeStamp({
         }
       }
     }
-    // console.log('handleTouchDown', rowIndex, initialTouchRow)
+    console.log('handleTouchDown', rowIndex, initialTouchRow)
   }
 
   const handleTouchMove = useCallback(
@@ -723,7 +688,7 @@ export default function EditTimeStamp({
 
       const schedule = currentDates[startCol]
       if (schedule) {
-        let selectedSlotId: number = -1
+        let selectedSlotId = null
 
         // 병합 및 업데이트
         const updatedTimeSlots = []
@@ -815,30 +780,23 @@ export default function EditTimeStamp({
           // console.log('mergedSelections:', mergedSelections)
 
           handleDateTimeSelect(String(startCol), mergedStartTime, mergedEndTime)
-          // console.log('handleMouseUp')
+          console.log('handleMouseUp')
           return {
             ...prev,
             [currentPage]: mergedSelections,
           }
         })
 
-        // console.log(
-        //   `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
-        // )
-        putTimeslotData(selectedSlotId, mergedStartTime, mergedEndTime)
+        console.log(
+          `최종 병합 영역:${selectedSlotId} ${mergedStartTime} - ${mergedEndTime}`,
+        )
       }
 
       setIsResizing(false)
       setActiveSelection(null)
       setResizingPoint(null)
     }
-  }, [
-    activeSelection,
-    currentDates,
-    currentPage,
-    handleDateTimeSelect,
-    putTimeslotData,
-  ])
+  }, [activeSelection, currentDates, currentPage, handleDateTimeSelect])
 
   useEffect(() => {
     const handleMouseUpWithColumnClick = () => {
@@ -913,6 +871,8 @@ export default function EditTimeStamp({
   // 셀 상태 계산
   const getCellStatus = (row: number, col: number) => {
     // 현재 페이지의 목데이터 인덱스 계산
+    // const scheduleIndex = currentPage * COLUMNS_PER_PAGE + col
+    // const schedule = currentDates[scheduleIndex]
     const schedule = currentDates[col]
 
     // 활성화된 선택 영역 확인

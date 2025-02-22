@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import WheelTimePicker from '@/components/Pickers/WheelTimePicker'
 import CustomModal from '../CustomModal'
 import CustomCalendar from '@/components/Calendars/CustomCalendar'
-import { format, isBefore, addDays, isAfter } from 'date-fns'
+import { format, isBefore } from 'date-fns'
 import { DateRange } from 'react-day-picker'
 import { useDateTimeStore } from '@/store/dateTimeStore'
 
@@ -33,7 +33,7 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
 
   useEffect(() => {
     adjustEndDateTime()
-  }, [startDate, startTime, endDate, endTime, adjustEndDateTime])
+  }, [startDate, startTime, endDate, endTime])
 
   useEffect(() => {
     if (startDate && endDate) {
@@ -65,33 +65,23 @@ export default function DateTimeModal({ onDateChange }: DateTimeModalProps) {
   const handleEndDateSelect = (
     selection: Date | DateRange | Date[] | undefined,
   ) => {
-    if (!startDate) return
-
-    const maxSelectableDate = addDays(startDate, 1) // 시작 날짜 +1일까지만 가능
-
     if (selection instanceof Date) {
-      if (isBefore(selection, startDate)) {
+      if (startDate && isBefore(selection, startDate)) {
         setWarningMessage('시작 날짜 이후의 날짜만 선택 가능합니다.')
-      } else if (isAfter(selection, maxSelectableDate)) {
-        setWarningMessage('일정은 최대 이틀까지 선택 가능합니다.')
       } else {
         setEndDate(selection)
         setWarningMessage('')
       }
     } else if (Array.isArray(selection) && selection.length > 0) {
-      if (isBefore(selection[0], startDate)) {
+      if (startDate && isBefore(selection[0], startDate)) {
         setWarningMessage('시작 날짜 이후의 날짜만 선택 가능합니다.')
-      } else if (isAfter(selection[0], maxSelectableDate)) {
-        setWarningMessage('일정은 최대 이틀까지 선택 가능합니다.')
       } else {
         setEndDate(selection[0])
         setWarningMessage('')
       }
     } else if (selection && 'from' in selection && selection.from) {
-      if (isBefore(selection.from, startDate)) {
+      if (startDate && isBefore(selection.from, startDate)) {
         setWarningMessage('시작 날짜 이후의 날짜만 선택 가능합니다.')
-      } else if (isAfter(selection.from, maxSelectableDate)) {
-        setWarningMessage('일정은 최대 이틀까지 선택 가능합니다.')
       } else {
         setEndDate(selection.from)
         setWarningMessage('')

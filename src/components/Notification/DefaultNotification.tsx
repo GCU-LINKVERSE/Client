@@ -13,9 +13,9 @@ export default function DefaultNotification({
   isVisible,
   onLeftBtn,
   onRightBtn,
-  leftBtnText, // 기본값
-  RightBtnText, // 기본값
-  notiMessage, // 기본값
+  leftBtnText = '이어서 하기', // 기본값
+  RightBtnText = '새로 만들기', // 기본값
+  notiMessage = '모임에 스케줄을 입력해주세요!', // 기본값
 }: DefaultNotificationProps) {
   if (!isVisible) return null
 
