@@ -1,6 +1,8 @@
 import { useRouter } from 'next/navigation'
 
-export const useNavigation = (setBottomSheetState: (state: 'collapsed' | 'middle' | 'expanded') => void) => {
+export const useNavigation = (
+  setBottomSheetState: (state: 'collapsed' | 'middle' | 'expanded') => void,
+) => {
   const router = useRouter()
 
   const handleBackClick = () => {

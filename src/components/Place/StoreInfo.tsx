@@ -3,11 +3,9 @@
 import React, { useState } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap' // KakaoMap 컴포넌트 임포트
 import { Place } from '@/types/place'
-import useTimeParser from "@/hooks/useTimeParser"
-
+import useTimeParser from '@/hooks/useTimeParser'
 
 const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
-
   const { todayEntry, otherEntries } = useTimeParser(selectedPlace?.time)
 
   const [activeDropdown, setActiveDropdown] = useState<
@@ -32,7 +30,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '20px 32px 20px 50px',
+          padding: '20px 40px',
         }}
       >
         {/* 영업 시간 */}
@@ -67,11 +65,11 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
                 margin: 0,
               }}
             >
-              {selectedPlace.time && !selectedPlace.time.startsWith('월') ? (
-                '상세보기'
-              ) : (
-                todayEntry ? todayEntry.hours : '운영 정보 없음'
-              )}
+              {selectedPlace.time && !selectedPlace.time.startsWith('월')
+                ? '상세보기'
+                : todayEntry
+                  ? todayEntry.hours
+                  : '운영 정보 없음'}
             </p>
             <img
               src={
@@ -136,30 +134,30 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
         {/* 전화 버튼 */}
         <button
           style={{
-            backgroundColor: "#61C56C",
-            color: "#FFFFFF",
-            border: "none",
-            borderRadius: "24px",
-            padding: "8px 16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-            cursor: selectedPlace.phoneNumber ? "pointer" : "default",
-            width: "92px",
-            height: "44px",
+            backgroundColor: '#61C56C',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '24px',
+            padding: '8px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            cursor: selectedPlace.phoneNumber ? 'pointer' : 'default',
+            width: '55%',
+            height: '60px',
           }}
           onClick={() => {
             if (selectedPlace.phoneNumber) {
-              window.location.href = `tel:${selectedPlace.phoneNumber}`;
+              window.location.href = `tel:${selectedPlace.phoneNumber}`
             }
           }}
-          disabled={!selectedPlace.phoneNumber} 
+          disabled={!selectedPlace.phoneNumber}
         >
           <img
             src="/call.svg"
             alt="Call Icon"
-            style={{ width: "36px", height: "36px" }}
+            style={{ width: '36px', height: '36px' }}
           />
         </button>
       </div>
@@ -187,7 +185,14 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
             <>
               <p>
                 {selectedPlace.time.split('\n').map((line, index) => (
-                  <div key={index} style={{ lineHeight: '20 px', fontWeight: 'normal' , fontFamily: 'Pretendard, sans-serif' }}>
+                  <div
+                    key={index}
+                    style={{
+                      lineHeight: '20 px',
+                      fontWeight: 'normal',
+                      fontFamily: 'Pretendard, sans-serif',
+                    }}
+                  >
                     {line}
                   </div>
                 ))}
@@ -197,10 +202,17 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
             <>
               {todayEntry ? (
                 <p>
-                  {todayEntry.day}({new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })}) {todayEntry.hours}
+                  {todayEntry.day}(
+                  {new Date().toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                  })}
+                  ) {todayEntry.hours}
                 </p>
               ) : (
-                <p style={{ fontWeight: 'bold', color: '#FF0000' }}>오늘 운영 정보 없음</p>
+                <p style={{ fontWeight: 'bold', color: '#FF0000' }}>
+                  오늘 운영 정보 없음
+                </p>
               )}
               {otherEntries.map((entry) => (
                 <p key={entry.day} style={{ color: '#AFAFAF' }}>
@@ -234,9 +246,9 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
             }}
           >
             {/* KakaoMap 컴포넌트 삽입 */}
-            <KakaoMap 
+            <KakaoMap
               selectedPlace={selectedPlace}
-              bottomSheetState=""  
+              bottomSheetState=""
               onMoveToCurrentLocation={() => {}}
             />
           </div>

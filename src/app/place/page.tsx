@@ -16,7 +16,6 @@ import { fetchCategoryData } from '@/services/place'
 import { fetchFilteredCategoryData } from '@/services/place'
 import { fetchFilters } from '@/services/place'
 
-
 const tabs = [
   { id: 'food', label: '음식점' },
   { id: 'cafe', label: '카페' },
@@ -25,7 +24,7 @@ const tabs = [
 ]
 
 export default function Home() {
-  const [selectedPlace] = useState<Place | undefined>(undefined);
+  const [selectedPlace] = useState<Place | undefined>(undefined)
   const [bottomSheetState, setBottomSheetState] = useState<
     'collapsed' | 'middle' | 'expanded'
   >('collapsed')
@@ -39,77 +38,83 @@ export default function Home() {
   const [cardData, setCardData] = useState<CardData[]>([]) // 카드 데이터를 저장
   const [userName, setUserName] = useState('')
   const isDraggingRef = useRef<boolean>(false)
-  const [page, setPage] = useState(0); 
-  const [loading, setLoading] = useState(false); 
-  const bottomSheetRef = useRef<HTMLDivElement | null>(null); 
+  const [page, setPage] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const bottomSheetRef = useRef<HTMLDivElement | null>(null)
 
   const loadMoreData = async (forcePage?: number) => {
-    if (loading) return; 
-    setLoading(true);
-  
+    if (loading) return
+    setLoading(true)
+
     try {
-      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
-      if (categoryIndex === -1) return;
-  
-      const newPage = forcePage !== undefined ? forcePage : page + 1;
-  
-      const newData = await fetchCategoryData(categoryIndex, newPage);
-  
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
+      if (categoryIndex === -1) return
+
+      const newPage = forcePage !== undefined ? forcePage : page + 1
+
+      const newData = await fetchCategoryData(categoryIndex, newPage)
+
       if (!newData || newData.length === 0) {
-        return;
+        return
       }
-  
+
       setCardData((prev) => {
-        const existingIds = new Set(prev.map((card) => card.id));
-        const filteredNewData = newData.filter((card) => !existingIds.has(card.id));
-        return [...prev, ...filteredNewData];
-      });
-  
-      setPage(newPage); 
+        const existingIds = new Set(prev.map((card) => card.id))
+        const filteredNewData = newData.filter(
+          (card) => !existingIds.has(card.id),
+        )
+        return [...prev, ...filteredNewData]
+      })
+
+      setPage(newPage)
     } catch (error) {
-      console.error("Error fetching more data:", error);
+      console.error('Error fetching more data:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    if (page === 0) return; 
-    loadMoreData(page);
-  }, [page]); 
-  
-  
+    if (page === 0) return
+    loadMoreData(page)
+  }, [page])
+
   const handleScroll = () => {
-    if (loading) return;
-  
-    const bottomSheet = bottomSheetRef.current;
-    if (!bottomSheet) return;
-  
-    const { scrollTop, scrollHeight, clientHeight } = bottomSheet;
-  
-    if ((bottomSheetState === "expanded" || bottomSheetState === "middle") && scrollTop + clientHeight >= scrollHeight * 0.9) {  
-      setPage((prev) => prev + 1);
+    if (loading) return
+
+    const bottomSheet = bottomSheetRef.current
+    if (!bottomSheet) return
+
+    const { scrollTop, scrollHeight, clientHeight } = bottomSheet
+
+    if (
+      (bottomSheetState === 'expanded' || bottomSheetState === 'middle') &&
+      scrollTop + clientHeight >= scrollHeight * 0.9
+    ) {
+      setPage((prev) => prev + 1)
     }
-  };
+  }
 
   useEffect(() => {
-    const bottomSheet = bottomSheetRef.current;
-    if (!bottomSheet) return;
-  
-    bottomSheet.addEventListener("scroll", handleScroll);
-    return () => bottomSheet.removeEventListener("scroll", handleScroll);
-  }, [bottomSheetState]);
+    const bottomSheet = bottomSheetRef.current
+    if (!bottomSheet) return
+
+    bottomSheet.addEventListener('scroll', handleScroll)
+    return () => bottomSheet.removeEventListener('scroll', handleScroll)
+  }, [bottomSheetState])
 
   useEffect(() => {
-    handleTabClick(selectedTab);
-  }, [selectedTab]);
-
+    handleTabClick(selectedTab)
+  }, [selectedTab])
 
   const handleCardClick = (placeId: number) => {
-    router.push(`/place/${placeId}`); 
-  };
+    router.push(`/place/${placeId}`)
+  }
 
-  const handleLikeButtonClick = async (placeId: number, liked: boolean | undefined) => {
+  const handleLikeButtonClick = async (
+    placeId: number,
+    liked: boolean | undefined,
+  ) => {
     try {
       const updatedLiked = await toggleLike(placeId, liked ?? false)
 
@@ -146,128 +151,132 @@ export default function Home() {
   }
 
   const getDayOfWeek = () => {
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    return days[new Date().getDay()];
-  };
-  
+    const days = ['일', '월', '화', '수', '목', '금', '토']
+    return days[new Date().getDay()]
+  }
+
   const parseTime = (time: string | undefined) => {
-    if (!time || typeof time !== 'string') return '운영 정보 없음';
-  
-    const today = getDayOfWeek();
-    const validDays = ['월', '화', '수', '목', '금', '토', '일'];
+    if (!time || typeof time !== 'string') return '운영 정보 없음'
+
+    const today = getDayOfWeek()
+    const validDays = ['월', '화', '수', '목', '금', '토', '일']
 
     if (!time.startsWith('월')) {
-      return '상세보기'; 
+      return '상세보기'
     }
-  
-  
+
     const timeEntries = time
       .split('\n')
       .map((entry) => {
-        const parts = entry.trim().split(' '); 
-        if (parts.length < 2 || !validDays.includes(parts[0])) return null;
-        return { day: parts[0], hours: parts.slice(1).join(' ') };
+        const parts = entry.trim().split(' ')
+        if (parts.length < 2 || !validDays.includes(parts[0])) return null
+        return { day: parts[0], hours: parts.slice(1).join(' ') }
       })
-      .filter(Boolean) as { day: string; hours: string }[];
-  
-    const todayEntry = timeEntries.find((entry) => entry.day === today);
-    return todayEntry ? todayEntry.hours : '운영 정보 없음';
-  };
+      .filter(Boolean) as { day: string; hours: string }[]
 
-  const fetchCategoryDataWithFilters = async (categoryIndex: number, selectedFilters: string[], page: number) => {
+    const todayEntry = timeEntries.find((entry) => entry.day === today)
+    return todayEntry ? todayEntry.hours : '운영 정보 없음'
+  }
+
+  const fetchCategoryDataWithFilters = async (
+    categoryIndex: number,
+    selectedFilters: string[],
+    page: number,
+  ) => {
     try {
       const filters = getCurrentTabFilters().reduce<Record<string, boolean>>(
         (acc, filter, index) => {
-          const filterKey = `filter${index + 1}`;
-          acc[filterKey] = selectedFilters.includes(filter);
-          return acc;
+          const filterKey = `filter${index + 1}`
+          acc[filterKey] = selectedFilters.includes(filter)
+          return acc
         },
-        {}
-      );
-      const data = await fetchFilteredCategoryData(categoryIndex, page, filters);
-  
-      return data.length ? data : [];
+        {},
+      )
+      const data = await fetchFilteredCategoryData(categoryIndex, page, filters)
+
+      return data.length ? data : []
     } catch (error) {
-      return [];
+      console.log('error :', error)
+      return []
     }
-  };
-  
-  
+  }
+
   const updateCardData = async (data: CardData[]) => {
     return await Promise.all(
       data.map(async (card) => {
-        const liked = await fetchLikedStates(card.id.toString());
-  
+        const liked = await fetchLikedStates(card.id.toString())
+
         const filters = Object.entries(card)
-          .filter(([key]) => key.startsWith("filter"))
+          .filter(([key]) => key.startsWith('filter'))
           .reduce<Record<string, boolean>>((acc, [key, value]) => {
-            if (typeof value === "boolean") acc[key] = value; 
-            return acc;
-          }, {});
-  
+            if (typeof value === 'boolean') acc[key] = value
+            return acc
+          }, {})
+
         return {
           ...card,
-          filters, 
+          filters,
           liked,
-        };
-      })
-    );
-  };
-  
+        }
+      }),
+    )
+  }
+
   const handleTabClick = async (tabId: string) => {
-    setSelectedTab(tabId);
-    setSelectedFilters([]); 
-  
-    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId);
+    setSelectedTab(tabId)
+    setSelectedFilters([])
+
+    const categoryIndex = tabs.findIndex((tab) => tab.id === tabId)
     if (categoryIndex === -1) {
-      console.warn('Invalid tabId provided:', tabId);
-      return;
+      console.warn('Invalid tabId provided:', tabId)
+      return
     }
-  
-    try {  
-      const data = await fetchCategoryData(categoryIndex, 0);
-      const updatedData = await updateCardData(data);
-      setCardData(updatedData);
-      setPage(1);
+
+    try {
+      const data = await fetchCategoryData(categoryIndex, 0)
+      const updatedData = await updateCardData(data)
+      setCardData(updatedData)
+      setPage(1)
     } catch (error) {
-      console.error('Error updating card data:', error);
+      console.error('Error updating card data:', error)
     }
-  };
-  
+  }
+
   const handleFilterButtonClick = (filter: string) => {
     setSelectedFilters((prevSelected) => {
       const updatedFilters = prevSelected.includes(filter)
         ? prevSelected.filter((item) => item !== filter)
-        : [...prevSelected, filter];
-  
-      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab);
+        : [...prevSelected, filter]
+
+      const categoryIndex = tabs.findIndex((tab) => tab.id === selectedTab)
       if (categoryIndex !== -1) {
-        setPage(0); 
-        setCardData([]);
-  
+        setPage(0)
+        setCardData([])
+
         if (updatedFilters.length > 0) {
-          fetchCategoryDataWithFilters(categoryIndex, updatedFilters, 0).then((data) => {
-            updateCardData(data).then(setCardData);
-          });
+          fetchCategoryDataWithFilters(categoryIndex, updatedFilters, 0).then(
+            (data) => {
+              updateCardData(data).then(setCardData)
+            },
+          )
         } else {
           fetchCategoryData(categoryIndex, 0).then((data) => {
-            updateCardData(data).then(setCardData);
-          });
+            updateCardData(data).then(setCardData)
+          })
         }
       }
-  
-      return updatedFilters;
-    });
-  };
-  
+
+      return updatedFilters
+    })
+  }
 
   useEffect(() => {
-    handleTabClick(selectedTab);
-  }, [selectedTab]);
+    handleTabClick(selectedTab)
+  }, [selectedTab])
 
   const handleVectorButtonClick = () => {
     if (mapRef.current) {
-      mapRef.current() 
+      mapRef.current()
     }
   }
 
@@ -289,26 +298,26 @@ export default function Home() {
 
     if (deltaY > threshold && bottomSheetState === 'collapsed') {
       setBottomSheetState('middle')
-      startY.current = y 
+      startY.current = y
     } else if (deltaY > threshold && bottomSheetState === 'middle') {
       setBottomSheetState('expanded')
       startY.current = y
     } else if (deltaY < -threshold && bottomSheetState === 'expanded') {
       setBottomSheetState('middle')
-      startY.current = y 
+      startY.current = y
     } else if (deltaY < -threshold && bottomSheetState === 'middle') {
       setBottomSheetState('collapsed')
-      startY.current = y 
+      startY.current = y
     }
 
-    const handleElement = document.querySelector(`.${styles.dragHandle}`);
-      if (handleElement) {
-        const handleRect = handleElement.getBoundingClientRect();
-        if (handleRect.bottom >= window.innerHeight) {
-          console.log('📌 드래그 핸들이 화면 아래 닿음!');
-          // 필요한 동작 수행 (예: 특정 이벤트 트리거)
-        }
+    const handleElement = document.querySelector(`.${styles.dragHandle}`)
+    if (handleElement) {
+      const handleRect = handleElement.getBoundingClientRect()
+      if (handleRect.bottom >= window.innerHeight) {
+        console.log('📌 드래그 핸들이 화면 아래 닿음!')
+        // 필요한 동작 수행 (예: 특정 이벤트 트리거)
       }
+    }
   }
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -326,18 +335,18 @@ export default function Home() {
   useEffect(() => {
     const loadFilters = async () => {
       try {
-        const { success, data } = await fetchFilters(); 
-  
+        const { success, data } = await fetchFilters()
+
         if (success && Array.isArray(data)) {
-          setFilters(data); 
+          setFilters(data)
         }
       } catch (error) {
-        console.error('Error fetching filters:', error);
+        console.error('Error fetching filters:', error)
       }
-    };
-  
-    loadFilters(); 
-  }, []);
+    }
+
+    loadFilters()
+  }, [])
 
   const getCurrentTabFilters = () => {
     const currentCategory = tabs.find((tab) => tab.id === selectedTab)?.label
@@ -349,9 +358,9 @@ export default function Home() {
       return []
     }
 
-    console.log("categoryFilters :",categoryFilters)
+    console.log('categoryFilters :', categoryFilters)
 
-    return Object.values(categoryFilters.filters) 
+    return Object.values(categoryFilters.filters)
   }
 
   const getCardFiltersWithNames = (
@@ -457,7 +466,11 @@ export default function Home() {
           </div>
           <div className={styles.content}>
             {cardData.map((card, index) => (
-              <div key={`${card.id}-${index}`} className={styles.card} onClick={() => handleCardClick(card.id)}>
+              <div
+                key={`${card.id}-${index}`}
+                className={styles.card}
+                onClick={() => handleCardClick(card.id)}
+              >
                 <div className={styles.cardImage}>
                   {card.pictures?.[0] ? (
                     <img
@@ -469,7 +482,7 @@ export default function Home() {
                     <img
                       src="/no_image.png"
                       alt={card.name || '기본 이미지'}
-                      className={styles.cardImage} 
+                      className={styles.cardImage}
                     />
                   )}
                 </div>
@@ -485,7 +498,7 @@ export default function Home() {
                       <div
                         className={`${styles.likeBackground} ${card.liked ? styles.liked : ''}`}
                         onClick={(e) => {
-                          e.stopPropagation(); 
+                          e.stopPropagation()
                           handleLikeButtonClick(card.id, card.liked)
                         }}
                       >

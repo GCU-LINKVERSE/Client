@@ -1,5 +1,5 @@
 export interface UserInfo {
-    data: {
-      userNickname: string;
-    };
+  data: {
+    userNickname: string
   }
+}

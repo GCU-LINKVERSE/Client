@@ -15,10 +15,10 @@ const VisitorPhoto: React.FC<VisitorPhotoProps> = ({ selectedPlace }) => {
     if (!grid) return
 
     const rowHeight = parseInt(
-      window.getComputedStyle(grid).getPropertyValue('grid-auto-rows')
+      window.getComputedStyle(grid).getPropertyValue('grid-auto-rows'),
     )
     const rowGap = parseInt(
-      window.getComputedStyle(grid).getPropertyValue('gap')
+      window.getComputedStyle(grid).getPropertyValue('gap'),
     )
     const items = grid.querySelectorAll<HTMLDivElement>('.grid-item')
 
@@ -27,7 +27,7 @@ const VisitorPhoto: React.FC<VisitorPhotoProps> = ({ selectedPlace }) => {
       if (!content) return
 
       const rowSpan = Math.ceil(
-        (content.offsetHeight + rowGap) / (rowHeight + rowGap)
+        (content.offsetHeight + rowGap) / (rowHeight + rowGap),
       )
       item.style.gridRowEnd = `span ${rowSpan}`
     })
@@ -68,7 +68,7 @@ const VisitorPhoto: React.FC<VisitorPhotoProps> = ({ selectedPlace }) => {
         ref={gridRef}
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)', 
+          gridTemplateColumns: 'repeat(3, 1fr)',
           gap: '4px',
           gridAutoRows: '8px',
         }}

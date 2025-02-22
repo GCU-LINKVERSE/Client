@@ -1,7 +1,9 @@
 import { useState, useRef } from 'react'
 
 export const useBottomSheet = () => {
-  const [bottomSheetState, setBottomSheetState] = useState<'collapsed' | 'middle' | 'expanded'>('collapsed')
+  const [bottomSheetState, setBottomSheetState] = useState<
+    'collapsed' | 'middle' | 'expanded'
+  >('collapsed')
   const startY = useRef<number | null>(null)
   const isDraggingRef = useRef<boolean>(false)
   const threshold = 50
@@ -18,10 +20,14 @@ export const useBottomSheet = () => {
     const deltaY = startY.current - y
 
     if (deltaY > threshold) {
-      setBottomSheetState((prev) => prev === 'collapsed' ? 'middle' : 'expanded')
+      setBottomSheetState((prev) =>
+        prev === 'collapsed' ? 'middle' : 'expanded',
+      )
       startY.current = y
     } else if (deltaY < -threshold) {
-      setBottomSheetState((prev) => prev === 'expanded' ? 'middle' : 'collapsed')
+      setBottomSheetState((prev) =>
+        prev === 'expanded' ? 'middle' : 'collapsed',
+      )
       startY.current = y
     }
   }
@@ -37,5 +43,11 @@ export const useBottomSheet = () => {
     document.removeEventListener('mouseup', handleEnd)
   }
 
-  return { bottomSheetState, setBottomSheetState, handleStart, handleMove, handleEnd }
+  return {
+    bottomSheetState,
+    setBottomSheetState,
+    handleStart,
+    handleMove,
+    handleEnd,
+  }
 }

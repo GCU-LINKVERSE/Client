@@ -20,7 +20,11 @@ export const usePlaceFilters = (placeData: Place) => {
 
         // placeData에서 filter로 시작하는 필드를 찾아서 그 값이 true일 경우에만 filters의 해당하는 값을 activeFilters에 추가
         const activeFilters = Object.keys(filters)
-          .filter((key) => key.startsWith('filter') && placeData[key as keyof Place] === true) // placeData의 필터 값이 true인 필드만 찾기
+          .filter(
+            (key) =>
+              key.startsWith('filter') &&
+              placeData[key as keyof Place] === true,
+          ) // placeData의 필터 값이 true인 필드만 찾기
           .map((key) => filters[key as keyof typeof filters]) // filters의 해당 값 추가
           .filter((filter) => filter !== undefined) // undefined 값 필터링
 
