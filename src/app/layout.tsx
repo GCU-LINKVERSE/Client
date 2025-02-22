@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import localFont from 'next/font/local'
+import React from 'react'
+import Notification from '@/components/Modals/Notification'
 
 const pretendard = localFont({
   src: '../fonts/PretendardVariable.woff2',
@@ -25,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${pretendard.variable}`}>
       <body className={`${pretendard.className}`}>
+        <Notification />
         <div className="mobile-container">{children}</div>
       </body>
     </html>

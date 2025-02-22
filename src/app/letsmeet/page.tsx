@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import NavBar from '@/components/Navigate/NavBar'
 import Button from '@/components/Buttons/Floating/Button'
 import { ScheduleOptions } from '@/components/Buttons/Floating/Options'
@@ -16,7 +16,14 @@ type Schedule = {
   startTime: string
   endTime: string
   location?: string
-  participants: { id: number; name: string; image: string }[]
+  participants: { id: number; name: string; image: string; type: string }[]
+}
+
+type Notification = {
+  id: number
+  leftBtnText: string
+  surveyId: number
+  notiMessage?: string
 }
 
 export default function LetsMeetPage() {
@@ -40,6 +47,7 @@ export default function LetsMeetPage() {
   const [isDirectModalOpen, setIsDirectModalOpen] = useState(false)
   const [title, setTitle] = useState('제목 없는 일정')
   const [scheduleList, setScheduleList] = useState<Schedule[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
 
   const [selectedLocation, setSelectedLocation] = useState<{
     place: string
@@ -54,12 +62,32 @@ export default function LetsMeetPage() {
     }
   }, [isDirectModal])
 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
   // ✅ URL에서 받아온 값으로 상태 업데이트
   useEffect(() => {
     if (isDirectModal && place && lat && lng) {
       setSelectedLocation({ place, lat, lng })
     }
   }, [isDirectModal, place, lat, lng])
+
+  const fetchNotification = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/members/notification`, {
+        method: 'GET',
+        credentials: 'include', // 쿠키 전송을 위해 필요
+      })
+
+      if (!response.ok) {
+        throw new Error(`서버 에러: ${response.status}`)
+      }
+      const notiData = await response.json()
+      setNotifications(notiData.data)
+      console.log('알림 정보:', notiData)
+    } catch (error) {
+      console.error('알림 정보 불러오기 실패:', error)
+    }
+  }, [API_BASE_URL])
 
   const handleFindMidpoint = () => {
     router.push('/search?from=/letsmeet')
@@ -147,30 +175,10 @@ export default function LetsMeetPage() {
     }
 
     fetchUserInfo()
+    fetchNotification()
     getSchedule()
-  }, [])
+  }, [fetchNotification])
 
-  // 캐러셀 알림 목데이터
-  const notifications = [
-    {
-      id: 1,
-      notiMessage: '선정하던 장소가 있습니다!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-    {
-      id: 2,
-      notiMessage: '선정하던 장소가 있습니다!!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-    {
-      id: 3,
-      notiMessage: '선정하던 장소가 있습니다~!',
-      leftBtnText: '이어서 하기',
-      RightBtnText: '새로 만들기',
-    },
-  ]
   // 캐러셀 알림 버튼 클릭 이벤트
   const handleLeftBtn = () => {
     alert('왼쪽 버튼 클릭')
@@ -189,8 +197,8 @@ export default function LetsMeetPage() {
         <div className="flex justify-center items-center overflew-hidden">
           <CarouselNotification
             notifications={notifications}
-            onLeftBtn={handleLeftBtn}
-            onRightBtn={handleRightBtn}
+            onClickLeftBtn={handleLeftBtn}
+            onClickRightBtn={handleRightBtn}
           />
         </div>
       )}

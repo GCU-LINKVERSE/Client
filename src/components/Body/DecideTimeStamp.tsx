@@ -39,7 +39,8 @@ interface GroupedDate {
 interface TimeSlot {
   start: string
   end: string
-  selectedBy: string[]
+  selectedByName: string[]
+  selectedById: string[]
 }
 
 interface DateData {
@@ -87,6 +88,10 @@ export default function TimeStamp({
   const [scale, setScale] = useState(1)
   const gridRef = useRef<HTMLDivElement>(null)
   const [initialTouchRow, setInitialTouchRow] = useState<number | null>(null)
+  const [hoveredCell, setHoveredCell] = useState<{
+    row: number
+    col: number
+  } | null>(null)
 
   const [selectionsByPage, setSelectionsByPage] = useState<{
     [key: number]: Selection[]
@@ -139,7 +144,7 @@ export default function TimeStamp({
           const startIndex = timeToIndex(slot.start)
           const endIndex = timeToIndex(slot.end)
           for (let i = startIndex; i < endIndex; i++) {
-            slots[i] += slot.selectedBy.length
+            slots[i] += slot.selectedById.length
           }
         })
         return { date: dateData.date, slots }
@@ -147,7 +152,8 @@ export default function TimeStamp({
     }
 
     // range 모드일 때는 기존 로직 유지
-    const startDate = new Date(mockDateTime[0].date)
+    // const startDate = new Date(mockDateTime[0]?.date)
+    const startDate = new Date(mockDateTime[0]?.date)
     const pageStartDate = new Date(
       startDate.getTime() + currentPage * 7 * 24 * 60 * 60 * 1000,
     )
@@ -166,7 +172,7 @@ export default function TimeStamp({
           const startIndex = timeToIndex(slot.start)
           const endIndex = timeToIndex(slot.end)
           for (let i = startIndex; i < endIndex; i++) {
-            slots[i] += slot.selectedBy.length
+            slots[i] += slot.selectedById.length
           }
         })
         return { date: dateData.date, slots }
@@ -367,7 +373,7 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
-      console.log('handleMouseClick')
+      // console.log('handleMouseClick')
 
       return {
         ...updatedSelections,
@@ -385,7 +391,7 @@ export default function TimeStamp({
     isEndpoint: boolean,
     selection?: Selection,
   ) => {
-    console.log(selection)
+    // console.log(selection)
 
     if (selection) {
       setIsResizing(true)
@@ -396,7 +402,7 @@ export default function TimeStamp({
           : 'end',
       )
       // console.log('Resizing started on', resizingPoint, selection)
-      console.log('handleMouseDown', selection, resizingPoint)
+      // console.log('handleMouseDown', selection, resizingPoint)
     }
   }
 
@@ -445,7 +451,7 @@ export default function TimeStamp({
           }
         }
 
-        console.log('handleMouseMove')
+        // console.log('handleMouseMove')
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
@@ -570,7 +576,7 @@ export default function TimeStamp({
         isConfirmed: false,
       }
 
-      console.log('handleTouchClick')
+      // console.log('handleTouchClick')
 
       return {
         ...updatedSelections,
@@ -601,7 +607,7 @@ export default function TimeStamp({
         }
       }
     }
-    console.log('handleTouchDown', rowIndex, initialTouchRow)
+    // console.log('handleTouchDown', rowIndex, initialTouchRow)
   }
 
   const handleTouchMove = useCallback(
@@ -650,7 +656,7 @@ export default function TimeStamp({
             newSelection.startRow = initialTouchRow
           }
         }
-        console.log('handleTouchMove')
+        // console.log('handleTouchMove')
         return !isOverlapping(newSelection) ? newSelection : prev
       })
     },
@@ -736,7 +742,7 @@ export default function TimeStamp({
         handleDateTimeSelect(selectedDate, startTime, endTime)
         setInitialTouchRow(null)
 
-        console.log('handleTouchUp')
+        // console.log('handleTouchUp')
 
         return {
           ...prev,
@@ -1127,7 +1133,7 @@ export default function TimeStamp({
     }
   }, [isBottomSheetOpen, onColumnClick])
 
-  console.log('selectionsbypage', selectionsByPage)
+  // console.log('selectionsbypage', selectionsByPage)
 
   return (
     <div
@@ -1217,6 +1223,10 @@ export default function TimeStamp({
                           onColumnClick(colIndex, rowIndex)
                         }
                       }}
+                      onMouseEnter={() =>
+                        setHoveredCell({ row: rowIndex, col: colIndex })
+                      }
+                      onMouseLeave={() => setHoveredCell(null)}
                     >
                       <div
                         className={`absolute inset-0 ${cornerStyleRound}`}
@@ -1235,6 +1245,56 @@ export default function TimeStamp({
                         }`}
                         style={{ zIndex: 100 }}
                       />
+                      {hoveredCell?.row === rowIndex &&
+                        hoveredCell?.col === colIndex &&
+                        // <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-black/80 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-[1000]">
+                        (() => {
+                          const currentDate =
+                            mode === 'range'
+                              ? `${currentDates[colIndex]?.year}-${String(currentDates[colIndex]?.month).padStart(2, '0')}-${String(currentDates[colIndex]?.day).padStart(2, '0')}`
+                              : `${groupedDate[currentPage]?.date?.[colIndex]?.year}-${String(groupedDate[currentPage]?.date?.[colIndex]?.month).padStart(2, '0')}-${String(groupedDate[currentPage]?.date?.[colIndex]?.day).padStart(2, '0')}`
+
+                          const dateData = mockDateTime.find(
+                            (data) => data.date === currentDate,
+                          )
+                          if (!dateData) return ''
+
+                          const matchingSlots = dateData.timeSlots.filter(
+                            (slot) => {
+                              const startIndex = timeToIndex(slot.start)
+                              const endIndex = timeToIndex(slot.end)
+                              return (
+                                rowIndex >= startIndex && rowIndex < endIndex
+                              )
+                            },
+                          )
+
+                          const selectedUsers = matchingSlots
+                            .flatMap((slot) => slot.selectedByName)
+                            .filter(Boolean)
+
+                          if (selectedUsers.length === 0) return null
+
+                          const groupedUsers = selectedUsers.reduce(
+                            (resultArray, item, index) => {
+                              const chunkIndex = Math.floor(index / 3)
+                              if (!resultArray[chunkIndex]) {
+                                resultArray[chunkIndex] = []
+                              }
+                              resultArray[chunkIndex].push(item)
+                              return resultArray
+                            },
+                            [] as string[][],
+                          )
+
+                          return (
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-black/80 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-[1000] text-center">
+                              {groupedUsers.map((group, index) => (
+                                <div key={index}>{group.join(', ')}</div>
+                              ))}
+                            </div>
+                          )
+                        })()}
                       {!cellStatus.isConfirmed && cellStatus.isStartCell && (
                         <div
                           className="absolute -top-[5px] left-[10%] w-2 h-2 border-[2px] border-[#9562fa] bg-white rounded-full cursor-move"

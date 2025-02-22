@@ -4,9 +4,11 @@ import { MdArrowBackIos } from 'react-icons/md'
 import { IoShareSocialOutline } from 'react-icons/io5'
 import { useRouter } from 'next/navigation'
 import EditTitle from '@/components/Header/EditTitle'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import CustomModal from '../Modals/CustomModal'
 import ScheduleSelectShareModal from '../Modals/ScheduleSelectShareModal'
+import { useGroupStore } from '@/store/groupStore'
+import axios from 'axios'
 
 interface TitleProps {
   buttonText: string
@@ -26,11 +28,38 @@ export default function Title({
   isEdit,
 }: TitleProps) {
   const router = useRouter()
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+  const { selectedGroupId } = useGroupStore()
   const [isShareOpen, setIsShareOpen] = useState(false)
+  const [isGroupLeader, setIsGroupLeader] = useState(false)
 
   const handleOpenDdialg = () => {
     setIsShareOpen(!isShareOpen)
   }
+
+  useEffect(() => {
+    if (!selectedGroupId) {
+      setIsGroupLeader(false) // selectedGroupId가 없을 때 초기화
+      return
+    }
+    // console.log('groupId', selectedGroupId)
+    const getGroupLeader = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/members/creator/check/${selectedGroupId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('모임장 여부 get 성공', res.data)
+        setIsGroupLeader(res.data.data)
+      } catch (error) {
+        console.log('모임장 여부 get 실패', error)
+      }
+    }
+
+    getGroupLeader()
+  }, [API_BASE_URL, selectedGroupId])
 
   return (
     <div className="w-full h-16 px-4 py-5 bg-white flex items-center gap-1">
@@ -42,9 +71,11 @@ export default function Title({
         <EditTitle initialTitle={initialTitle} onTitleChange={onTitleChange} />
       </div>
       <div className="flex ml-auto gap-4">
-        <button onClick={handleOpenDdialg}>
-          <IoShareSocialOutline className="w-8 h-8 text-[#1e1e1e]" />
-        </button>
+        {isGroupLeader && (
+          <button onClick={handleOpenDdialg}>
+            <IoShareSocialOutline className="w-8 h-8 text-[#1e1e1e]" />
+          </button>
+        )}
         <button
           className={`text-center text-xl font-medium font-['Pretendard'] leading-[25px] 
           ${isPurple ? 'text-[#9562fa]' : 'text-[#afafaf]'} 
@@ -60,7 +91,7 @@ export default function Title({
         onOpenChange={handleOpenDdialg}
         isFooter={false}
       >
-        <ScheduleSelectShareModal inviteUrl="https://moim.team/" />
+        <ScheduleSelectShareModal />
       </CustomModal>
     </div>
   )

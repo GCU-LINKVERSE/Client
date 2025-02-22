@@ -78,7 +78,7 @@ export default function SelectedDays({
   const groupByWeekday = useCallback(
     (selectedDates: SelectedDate[], dayofWeek: string[] | null) => {
       if (!dayofWeek) {
-        console.log('dayofWeek is null or empty.')
+        // console.log('dayofWeek is null or empty.')
         return []
       }
 

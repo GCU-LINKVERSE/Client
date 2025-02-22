@@ -1,7 +1,10 @@
 'use client'
 
 import { GoPencil } from 'react-icons/go'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSurveyStore } from '@/store/surveyStore'
+import { useGroupStore } from '@/store/groupStore'
+import axios from 'axios'
 
 interface EditTitleProps {
   initialTitle: string
@@ -14,14 +17,67 @@ export default function EditTitle({
 }: EditTitleProps) {
   const [title, setTitle] = useState(initialTitle)
   const [isEditing, setIsEditing] = useState(false)
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+  const { selectedSurveyId } = useSurveyStore()
+  const { selectedGroupId } = useGroupStore()
+  const [isGroupLeader, setIsGroupLeader] = useState(false)
+
+  useEffect(() => {
+    if (!selectedGroupId) {
+      setIsGroupLeader(false) // selectedGroupId가 없을 때 초기화
+      return
+    }
+    // console.log('groupId', selectedGroupId)
+    const getGroupLeader = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/members/creator/check/${selectedGroupId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+        console.log('모임장 여부 get 성공', res.data)
+        setIsGroupLeader(res.data.data)
+      } catch (error) {
+        console.log('모임장 여부 get 실패', error)
+      }
+    }
+
+    getGroupLeader()
+  }, [API_BASE_URL, selectedGroupId])
+
+  // console.log('getGroupLeader', isGroupLeader)
+
+  useEffect(() => {
+    setTitle(initialTitle)
+  }, [initialTitle])
 
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(event.target.value)
   }
 
-  const handleSave = () => {
+  // console.log('initialTitle', initialTitle)
+  // console.log('title', title)
+
+  const handleSave = async () => {
     setIsEditing(false)
     onTitleChange(title)
+
+    try {
+      const res = await axios.patch(
+        `${API_BASE_URL}/api/survey/${selectedSurveyId}`,
+        {
+          title: title,
+        },
+        {
+          withCredentials: true, // 쿠키 전송을 위해 필요
+        },
+      )
+
+      console.log('일정 이름 변경 성공', res)
+    } catch (error) {
+      console.log('일정 이름 변경 실패', error)
+    }
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -31,7 +87,7 @@ export default function EditTitle({
   }
 
   const truncateTitle = (text: string, maxLength: number) => {
-    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
+    return text?.length > maxLength ? `${text.slice(0, maxLength)}...` : text
   }
 
   return (
@@ -60,7 +116,7 @@ export default function EditTitle({
             {truncateTitle(title, 10)}
           </span>
         )}
-        {!isEditing && (
+        {!isEditing && isGroupLeader && (
           <button onClick={() => setIsEditing(true)} className="z-20">
             <GoPencil className="w-6 h-6 text-[#afafaf]" strokeWidth={1} />
           </button>

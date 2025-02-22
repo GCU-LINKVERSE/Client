@@ -10,6 +10,11 @@ import CustomModal from '@/components/Modals/CustomModal'
 import DecideBottom from '@/components/Footer/BottomSheet/DecideBottom'
 import { ScheduleItem } from '@/components/Footer/ListItem/ScheduleItem'
 import { useRouter } from 'next/navigation'
+import { useSurveyStore } from '@/store/surveyStore'
+import { useGroupStore } from '@/store/groupStore'
+import axios from 'axios'
+import { useNotificationStore } from '@/store/notificationStore'
+import Image from 'next/image'
 
 interface SelectedDate {
   year: number
@@ -37,7 +42,8 @@ interface GroupedDate {
 interface TimeSlot {
   start: string
   end: string
-  selectedBy: string[]
+  selectedById: string[]
+  selectedByName: string[]
 }
 
 interface DateData {
@@ -63,261 +69,16 @@ interface ScheduleData {
   date: [string, string][] // 날짜 배열: [날짜, 요일]의 배열
 }
 
-const mockDateTime: PrevScheduleData[] = [
-  {
-    title: '팀플 대면 모임',
-    userId: 2,
-    groupId: 1,
-    mode: 'range',
-    selected: null,
-    dateData: [
-      {
-        date: '2025-02-01',
-        timeSlots: [
-          {
-            start: '09:30',
-            end: '17:00',
-            selectedBy: ['user1', 'user2', 'user3'],
-          },
-          { start: '17:00', end: '22:00', selectedBy: ['user1'] },
-        ],
-      },
-      {
-        date: '2025-02-02',
-        timeSlots: [
-          { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
-          { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
-          { start: '20:00', end: '23:00', selectedBy: ['user3'] },
-        ],
-      },
-      {
-        date: '2025-02-03',
-        timeSlots: [
-          { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
-          {
-            start: '10:00',
-            end: '16:00',
-            selectedBy: ['user2', 'user3', 'user4'],
-          },
-          { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
-        ],
-      },
-      {
-        date: '2025-02-04',
-        timeSlots: [
-          {
-            start: '11:00',
-            end: '18:00',
-            selectedBy: ['user1', 'user2', 'user3', 'user4'],
-          },
-          { start: '18:00', end: '19:00', selectedBy: ['user2'] },
-        ],
-      },
-      {
-        date: '2025-02-05',
-        timeSlots: [
-          { start: '10:00', end: '15:00', selectedBy: ['user1'] },
-          {
-            start: '15:00',
-            end: '18:00',
-            selectedBy: ['user1', 'user2', 'user3'],
-          },
-          { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
-        ],
-      },
-      {
-        date: '2025-02-06',
-        timeSlots: [
-          { start: '04:00', end: '06:00', selectedBy: ['user3'] },
-          {
-            start: '06:00',
-            end: '21:00',
-            selectedBy: ['user1', 'user2', 'user3', 'user4'],
-          },
-        ],
-      },
-      {
-        date: '2025-02-07',
-        timeSlots: [
-          { start: '06:00', end: '07:00', selectedBy: ['user2'] },
-          {
-            start: '07:00',
-            end: '19:00',
-            selectedBy: ['user1', 'user3', 'user4'],
-          },
-          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-        ],
-      },
-      {
-        date: '2025-02-08',
-        timeSlots: [
-          {
-            start: '10:00',
-            end: '19:00',
-            selectedBy: ['user1', 'user3', 'user4'],
-          },
-          { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-        ],
-      },
-    ],
-  },
-]
-
-// const mockDateTime: PrevScheduleData[] = [
-//   {
-//     title: '팀플 대면 모임',
-//     userId: 2,
-//     groupId: 1,
-//     mode: 'week',
-//     selected: ['mon', 'wed', 'fri'],
-//     dateData: [
-//       {
-//         date: '2025-01-06',
-//         timeSlots: [
-//           {
-//             start: '09:30',
-//             end: '17:00',
-//             selectedBy: ['user1', 'user2', 'user3'],
-//           },
-//           { start: '17:00', end: '22:00', selectedBy: ['user1'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-05',
-//         timeSlots: [
-//           { start: '08:00', end: '13:00', selectedBy: ['user2', 'user3'] },
-//           { start: '13:00', end: '20:00', selectedBy: ['user1', 'user4'] },
-//           { start: '20:00', end: '23:00', selectedBy: ['user3'] },
-//         ],
-//       },
-//       {
-//         date: '2025-01-13',
-//         timeSlots: [
-//           { start: '05:00', end: '10:00', selectedBy: ['user1', 'user2'] },
-//           {
-//             start: '10:00',
-//             end: '16:00',
-//             selectedBy: ['user2', 'user3', 'user4'],
-//           },
-//           { start: '16:00', end: '21:00', selectedBy: ['user1', 'user3'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-12',
-//         timeSlots: [
-//           {
-//             start: '11:00',
-//             end: '18:00',
-//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
-//           },
-//           { start: '18:00', end: '19:00', selectedBy: ['user2'] },
-//         ],
-//       },
-//       {
-//         date: '2025-03-07',
-//         timeSlots: [
-//           { start: '10:00', end: '15:00', selectedBy: ['user1'] },
-//           {
-//             start: '15:00',
-//             end: '18:00',
-//             selectedBy: ['user1', 'user2', 'user3'],
-//           },
-//           { start: '28:00', end: '22:00', selectedBy: ['user2', 'user4'] },
-//         ],
-//       },
-//       {
-//         date: '2025-02-19',
-//         timeSlots: [
-//           { start: '04:00', end: '06:00', selectedBy: ['user3'] },
-//           {
-//             start: '06:00',
-//             end: '21:00',
-//             selectedBy: ['user1', 'user2', 'user3', 'user4'],
-//           },
-//         ],
-//       },
-//       {
-//         date: '2025-01-20',
-//         timeSlots: [
-//           // { start: '06:00', end: '07:00', selectedBy: ['user2'] },
-//           // {
-//           //   start: '07:00',
-//           //   end: '19:00',
-//           //   selectedBy: ['user1', 'user3', 'user4'],
-//           // },
-//           // { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-//         ],
-//       },
-//       {
-//         date: '2025-01-27',
-//         timeSlots: [
-//           {
-//             start: '10:00',
-//             end: '19:00',
-//             selectedBy: ['user1', 'user3', 'user4'],
-//           },
-//           { start: '19:00', end: '22:00', selectedBy: ['user1', 'user2'] },
-//         ],
-//       },
-//     ],
-//   },
-// ]
-
-const participants = [
-  {
-    id: 1,
-    name: '나',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 2,
-    name: '김태엽',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 3,
-    name: '지유진',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 4,
-    name: '이소룡',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 5,
-    name: '박진우',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 6,
-    name: '이예지',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 7,
-    name: '조성하',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 8,
-    name: '성윤정',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 9,
-    name: '김나영',
-    image: '/sampleProfile.png',
-  },
-  {
-    id: 10,
-    name: '이채연',
-    image: '/sampleProfile.png',
-  },
-]
+interface Participants {
+  id: number
+  name: string
+  image: string
+  scheduleComplete: string
+  locationComplete: string
+  type: string
+}
 
 export default function Page() {
-  const [title, setTitle] = useState(mockDateTime[0].title)
   const [isPurple, setIsPurple] = useState(false)
   const [currentPage, setCurrentPage] = useState(0)
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null)
@@ -345,13 +106,176 @@ export default function Page() {
 
   const router = useRouter()
 
-  const onClickConfirm = () => {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  const { selectedSurveyId } = useSurveyStore() // Zustand에서 가져옴
+  const { selectedGroupId } = useGroupStore()
+
+  const [decideData, setDecideData] = useState<PrevScheduleData[]>([])
+  const [participants, setParticipants] = useState<Participants[]>()
+
+  const [title, setTitle] = useState<string>('')
+  const [err, setErr] = useState(false)
+
+  const showNotification = useNotificationStore(
+    (state) => state.showNotification,
+  )
+
+  // 모든 인원의 survey 정보 받아오기
+  useEffect(() => {
+    if (!selectedSurveyId || !selectedGroupId) return
+
+    // console.log('surveyId', selectedSurveyId)
+    const getSurveyData = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/timeslot/${selectedSurveyId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+
+        console.log('decide data', res.data.data)
+        setDecideData([res.data.data])
+        setTitle(res.data.data.title)
+      } catch (error) {
+        setErr(true)
+        if (axios.isAxiosError(error) && error.response) {
+          if (error.response.status === 404) {
+            // console.log(404)
+            showNotification(
+              '모든 모임원이 가능 시간을 입력하지 않아서 일정을 조율할 수 없어요.',
+            )
+            router.push('/schedule/select')
+          } else {
+            console.log('survey data get 실패', error)
+          }
+        }
+      }
+    }
+
+    // 멤버 불러오기
+    const getMemberData = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/group-members/List/${selectedGroupId}`,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+
+        console.log('멤버 불러오기 성공', res.data.data)
+        const member = res.data.data
+        setParticipants(member)
+      } catch (error) {
+        console.log('멤버 불러오기 실패', error)
+      }
+    }
+
+    getMemberData()
+    getSurveyData()
+  }, [
+    API_BASE_URL,
+    selectedSurveyId,
+    selectedGroupId,
+    router,
+    showNotification,
+  ])
+
+  // dateTime(최종 선택 결과)에서 각 타임슬롯별로 가능한 유저ID 추가하는 함수 - userIds
+  function transformToReqData(
+    dateTime: { date: string; timeSlots: { start: string; end: string }[] }[],
+    decideData: PrevScheduleData[],
+    title: string,
+  ) {
+    return {
+      title,
+      timeSlots: dateTime.flatMap(({ date, timeSlots }) => {
+        return timeSlots.map(({ start, end }) => {
+          // 모든 `decideData`에서 해당 날짜의 `timeSlots` 찾기
+          const matchingDecideSlots = decideData.flatMap(
+            (d) =>
+              d.dateData.find((dData) => dData.date === date)?.timeSlots || [],
+          )
+
+          // 겹치는 시간대의 `selectedById` 정보를 `userIds`로 추가
+          const userIds = matchingDecideSlots
+            .filter(
+              (decideSlot) =>
+                (start >= decideSlot.start && start < decideSlot.end) || // 시작 시간이 겹치는 경우
+                (end > decideSlot.start && end <= decideSlot.end) || // 끝 시간이 겹치는 경우
+                (start <= decideSlot.start && end >= decideSlot.end), // `dateTime`이 `decideData` 전체를 포함하는 경우
+            )
+            .flatMap((decideSlot) => decideSlot.selectedById || [])
+
+          // UTC 변환을 명확하게 지정
+          const startDateObj = new Date(`${date}T${start}:00`)
+          const endDateObj = new Date(`${date}T${end}:00`)
+
+          // 날짜와 시간에서 UTC 변환
+          const startDate = new Date(
+            Date.UTC(
+              startDateObj.getFullYear(),
+              startDateObj.getMonth(),
+              startDateObj.getDate(),
+              startDateObj.getHours(),
+              startDateObj.getMinutes(),
+            ),
+          ).toISOString()
+
+          const endDate = new Date(
+            Date.UTC(
+              endDateObj.getFullYear(),
+              endDateObj.getMonth(),
+              endDateObj.getDate(),
+              endDateObj.getHours(),
+              endDateObj.getMinutes(),
+            ),
+          ).toISOString()
+
+          return {
+            startDate,
+            endDate,
+            userIds: [...new Set(userIds)], // 중복 제거
+          }
+        })
+      }),
+    }
+  }
+
+  const onClickConfirm = async () => {
     if (isPurple && !decideBottomOpen) {
       setDecideBottomOpen(true)
     } else if (!isPurple && !decideBottomOpen) {
       setWarning(true)
     } else if (isPurple && decideBottomOpen) {
-      router.push('/schedule')
+      //console.log('dateTime', dateTime)
+      // console.log('decideData', decideData)
+      // 요청 바디 형식에 맞춰 변경
+      const reqBody = transformToReqData(
+        dateTime,
+        decideData,
+        title || decideData[0]?.title,
+      )
+
+      console.log('req', reqBody)
+
+      // api 요청
+      try {
+        const res = await axios.post(
+          `${API_BASE_URL}/api/schedule/${selectedSurveyId}/decide`,
+          reqBody,
+          {
+            withCredentials: true, // 쿠키 전송을 위해 필요
+          },
+        )
+
+        console.log('일정 확정 성공', res)
+        router.push('/schedule')
+        showNotification('모임 확정 완료!')
+      } catch (error) {
+        console.log('일정 확정 실패', error)
+      }
     }
   }
 
@@ -361,7 +285,7 @@ export default function Page() {
       ? highlightedCol - currentPage * DAYS_PER_PAGE
       : null
 
-  function transformDateTime(mockData: PrevScheduleData[]) {
+  function transformDateTime(decideData: PrevScheduleData[]) {
     const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
     // Helper function to get the day name for a given date
@@ -370,7 +294,7 @@ export default function Page() {
       return dayNames[date.getUTCDay()]
     }
 
-    return mockData.map(
+    return decideData.map(
       ({ title, userId, groupId, mode, selected, dateData }) => {
         const date = dateData.flatMap(({ date }) => [[date, getDayName(date)]])
 
@@ -386,7 +310,7 @@ export default function Page() {
     )
   }
 
-  const transformData = transformDateTime(mockDateTime).map((data) => ({
+  const transformData = transformDateTime(decideData).map((data) => ({
     ...data,
     date: data.date as [string, string][],
   }))
@@ -556,7 +480,7 @@ export default function Page() {
   }
 
   useEffect(() => {
-    console.log(`Updated dateTimeData:`, dateTime)
+    //console.log(`Updated dateTimeData:`, dateTime)
 
     // 먼저 모든 날짜와 시간대를 하나의 배열로 변환
     const allTimeSlots = dateTime
@@ -597,7 +521,11 @@ export default function Page() {
     }))
 
     setFinalData(transformedData)
-    console.log('transformedData', transformedData)
+    //console.log('transformedData', transformedData)
+
+    if (dateTime.length === 0) {
+      setIsPurple(false)
+    }
   }, [dateTime])
 
   const weekdayMap: { [key: string]: string } = {
@@ -627,8 +555,8 @@ export default function Page() {
   }
 
   const selectedDates: SelectedDate[] = convertToSelectedDates(transformData)
-  const mode = mockDateTime[0].mode
-  const dayofWeek = mockDateTime[0].selected
+  const mode = decideData[0]?.mode
+  const dayofWeek = decideData[0]?.selected
   const month =
     mode === 'range'
       ? currentPage === Math.floor((highlightedCol ?? 0) / DAYS_PER_PAGE)
@@ -692,9 +620,14 @@ export default function Page() {
 
   return (
     <div className="flex flex-col h-full bg-white">
+      {err && (
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <Image src="/loadingspinner.gif" alt="로딩" width={100} height={50} />
+        </div>
+      )}
       <Title
         buttonText={'확정'}
-        initialTitle={mockDateTime[0]?.title || title}
+        initialTitle={decideData[0]?.title}
         onTitleChange={handleTitleChange}
         isPurple={isPurple}
         onClickTitleButton={onClickConfirm}
@@ -709,7 +642,7 @@ export default function Page() {
         highlightedCol={highlightedCol}
         onDateCountsChange={handleDateCountsChange}
         isPurple={isPurple}
-        participants={participants}
+        participants={participants ?? []}
         title={title}
       />
       <div className="flex-grow overflow-hidden mt-2">
@@ -724,7 +657,7 @@ export default function Page() {
           handleActiveTime={handleActiveTime}
           getDateTime={getDateTime}
           isBottomSheetOpen={isOpen}
-          mockDateTime={mockDateTime[0].dateData}
+          mockDateTime={decideData[0]?.dateData ?? []}
           dateTime={dateTime}
         />
       </div>

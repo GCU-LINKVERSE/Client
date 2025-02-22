@@ -7,7 +7,7 @@ import {
   type SelectRangeEventHandler,
   type SelectSingleEventHandler,
 } from 'react-day-picker'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import '../../styles/CustomCalendarStyle.css'
 import { ChevronLeft } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
@@ -32,8 +32,13 @@ export default function CustomCalendar({
     Record<string, number[]>
   >({})
   const [rangeSelection, setRangeSelection] = useState<DateRange | undefined>()
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // 오늘 날짜의 시간을 초기화
+  const [hasNewSelection, setHasNewSelection] = useState(false)
+
+  const today = useMemo(() => {
+    const date = new Date()
+    date.setHours(0, 0, 0, 0)
+    return date
+  }, [])
 
   const getMonthKey = useCallback((date: Date) => {
     return `${date.getFullYear()}-${date.getMonth()}`
@@ -63,13 +68,11 @@ export default function CustomCalendar({
     [today],
   )
 
-  let isNewSelect = false
-
   const handleWeekdayClick = useCallback(
     (weekday: number) => {
-      isNewSelect = true
+      setHasNewSelection(true)
       const monthKey = getMonthKey(month)
-      console.log(monthKey)
+      // console.log(monthKey)
       setSelectedWeekdaysByMonth((prev) => {
         const currentMonthWeekdays = prev[monthKey] || []
         let newWeekdays: number[]
@@ -90,7 +93,7 @@ export default function CustomCalendar({
           // 요일이 하나라도 선택된 경우
           setMode('multiple')
           const dates = getDatesByWeekdays(newWeekdays, month)
-          console.log('dates', dates)
+          // console.log('dates', dates)
           onSelect?.(dates)
         } else {
           // 모든 요일 선택이 해제된 경우
@@ -107,25 +110,24 @@ export default function CustomCalendar({
   const handleMonthChange = useCallback(
     (newMonth: Date) => {
       setMonth(newMonth)
-      console.log('swdbm', selectedWeekdaysByMonth)
+      // console.log('swdbm', selectedWeekdaysByMonth)
       if (mode === 'multiple') {
-        console.log(isNewSelect)
-        if (!isNewSelect) {
-          return
-        } else {
-          // // Reset weekday selections when changing months in multiple mode
+        if (hasNewSelection) {
+          // Reset weekday selections when changing months after a new selection
           setSelectedWeekdaysByMonth({})
           setMode('range')
           onSelect?.({ from: undefined, to: undefined })
+          setHasNewSelection(false)
         }
       }
     },
-    [mode, onSelect],
+    [hasNewSelection, mode, onSelect],
   )
 
   const handleDayClick = useCallback(
     (day: Date) => {
       if (mode === 'multiple') {
+        setHasNewSelection(true)
         setMode('range')
         const monthKey = getMonthKey(day)
         setSelectedWeekdaysByMonth((prev) => ({ ...prev, [monthKey]: [] }))
@@ -209,10 +211,27 @@ export default function CustomCalendar({
         )
         return Object.values(weekdayToLastDateMap).includes(date.getTime())
       },
+      oneWeekday: (date: Date) => {
+        // 특정 요일이 해당 월에서 단 하루만 존재하는 경우 찾기
+        const monthKey = getMonthKey(date)
+        const selectedWeekdays = selectedWeekdaysByMonth[monthKey] || []
+        const weekdayCountMap = selectedWeekdays.reduce(
+          (acc, weekday) => {
+            const dates = getDatesByWeekdays([weekday], date)
+            if (dates.length === 1) {
+              acc[weekday] = dates[0].getTime() // 유일한 날짜 저장
+            }
+            return acc
+          },
+          {} as Record<number, number>,
+        )
+        return Object.values(weekdayCountMap).includes(date.getTime())
+      },
     },
     modifiersClassNames: {
       firstWeekday: 'weekday-first',
       lastWeekday: 'weekday-last',
+      oneWeekday: 'weekday-one',
     },
     classNames: {
       months: 'calendar-months',
