@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap'
 import styles from '@/app/place/styles/Detail.module.css'
 import { Place } from '@/types/place'
@@ -14,6 +14,8 @@ import StoreInfo from '@/components/Place/StoreInfo'
 import StoreInfoCampus from '@/components/Place/StoreInfoCampus'
 import StoreInfoReservation from '@/components/Place/StoreInfoReservation'
 import useTimeParser from '@/hooks/useTimeParser'
+import useNavigateToNaverMap from "@/hooks/handleNavigation"
+import useAddressToCoordinates from '@/hooks/useAddressToCoordinates';
 
 interface PlaceDetailProps {
   placeData: Place
@@ -50,6 +52,39 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
   )
   const { todayEntry } = useTimeParser(placeData.time)
   const [activeTab, setActiveTab] = useState<'상세' | '사진'>('상세')
+  const { navigateToNaverMap } = useNavigateToNaverMap();
+  const { coordinates, getCoordinates } = useAddressToCoordinates();
+
+  useEffect(() => {
+    if (document.getElementById('kakao-maps-script')) {
+      return;
+    }
+  
+    const script = document.createElement('script');
+    script.id = 'kakao-maps-script';
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&autoload=false&libraries=services`;
+    script.async = true;
+    script.onload = () => {
+      console.log('Kakao Maps API 스크립트가 정상적으로 로드되었습니다.');
+      window.kakao.maps.load(() => {
+        console.log('Kakao Maps API 사용 가능');
+      });
+    };
+  
+    document.head.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    if (!placeData.address) return;
+  
+    getCoordinates(placeData.address)
+      .then((coords) => {
+        console.log('도착지 좌표 변환 완료:', coords);
+      })
+      .catch((error) => {
+        console.error('도착지 좌표 변환 실패:', error);
+      });
+  }, [placeData]);
 
   return (
     <div className={styles['detail-container']}>
@@ -116,6 +151,19 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
           src="/path.svg"
           alt="Path Icon"
           className={styles.iconInsideButton}
+
+          onClick={() => {
+            if (coordinates?.lat && coordinates?.lng) {
+              navigateToNaverMap(
+                placeData.address,
+                coordinates.lat,
+                coordinates.lng,
+                placeData.name
+              );
+            } else {
+              console.error('도착지 좌표 없음');
+            }
+          }}
         />
       </div>
 
