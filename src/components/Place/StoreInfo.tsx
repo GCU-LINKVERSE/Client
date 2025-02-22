@@ -30,7 +30,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '20px 32px 20px 50px',
+          padding: '20px 40px',
         }}
       >
         {/* 영업 시간 */}
@@ -144,8 +144,8 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place | null }) => {
             justifyContent: 'center',
             gap: '8px',
             cursor: selectedPlace.phoneNumber ? 'pointer' : 'default',
-            width: '92px',
-            height: '44px',
+            width: '55%',
+            height: '60px',
           }}
           onClick={() => {
             if (selectedPlace.phoneNumber) {
