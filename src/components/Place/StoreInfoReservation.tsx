@@ -3,16 +3,16 @@
 import React, { useState } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap' // KakaoMap 컴포넌트 임포트
 import { Place } from '@/types/place'
-import useTimeParser from "@/hooks/useTimeParser"
+import useTimeParser from '@/hooks/useTimeParser'
 
 const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
   const { todayEntry, otherEntries } = useTimeParser(selectedPlace?.time)
   const [activeDropdown, setActiveDropdown] = useState<
     'time' | 'capacity' | null
-  >(null) 
+  >(null)
 
   if (!selectedPlace) {
-    return null 
+    return null
   }
 
   const toggleDropdown = (dropdown: 'time' | 'capacity') => {
@@ -62,11 +62,11 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
                 margin: 0,
               }}
             >
-              {selectedPlace.time && !selectedPlace.time.startsWith('월') ? (
-                '상세보기'
-              ) : (
-                todayEntry ? todayEntry.hours : '운영 정보 없음'
-              )}
+              {selectedPlace.time && !selectedPlace.time.startsWith('월')
+                ? '상세보기'
+                : todayEntry
+                  ? todayEntry.hours
+                  : '운영 정보 없음'}
             </p>
             <img
               src={
@@ -187,12 +187,19 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
             marginBottom: '8px',
           }}
         >
-         {/* "월"로 시작하지 않으면 "상세보기" 출력 */}
-         {selectedPlace.time && !selectedPlace.time.startsWith('월') ? (
+          {/* "월"로 시작하지 않으면 "상세보기" 출력 */}
+          {selectedPlace.time && !selectedPlace.time.startsWith('월') ? (
             <>
               <p>
                 {selectedPlace.time.split('\n').map((line, index) => (
-                  <div key={index} style={{ lineHeight: '20 px', fontWeight: 'normal' , fontFamily: 'Pretendard, sans-serif' }}>
+                  <div
+                    key={index}
+                    style={{
+                      lineHeight: '20 px',
+                      fontWeight: 'normal',
+                      fontFamily: 'Pretendard, sans-serif',
+                    }}
+                  >
                     {line}
                   </div>
                 ))}
@@ -202,10 +209,17 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
             <>
               {todayEntry ? (
                 <p>
-                  {todayEntry.day}({new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })}) {todayEntry.hours}
+                  {todayEntry.day}(
+                  {new Date().toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                  })}
+                  ) {todayEntry.hours}
                 </p>
               ) : (
-                <p style={{ fontWeight: 'bold', color: '#FF0000' }}>오늘 운영 정보 없음</p>
+                <p style={{ fontWeight: 'bold', color: '#FF0000' }}>
+                  오늘 운영 정보 없음
+                </p>
               )}
               {otherEntries.map((entry) => (
                 <p key={entry.day} style={{ color: '#AFAFAF' }}>

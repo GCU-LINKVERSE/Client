@@ -1,7 +1,6 @@
-import { CategoryPerData } from "./categoryPerData";
-  
+import { CategoryPerData } from './categoryPerData'
 
 export interface FetchFiltersResponse {
-    success: boolean;
-    data: CategoryPerData[];
+  success: boolean
+  data: CategoryPerData[]
 }

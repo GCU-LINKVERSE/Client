@@ -143,15 +143,15 @@
 .bottomSheet {
   position: fixed;
   bottom: 0;
-  left: 50%; 
-  transform: translateX(-50%); 
-  max-width: 600px; 
-  width: 100%; 
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 600px;
+  width: 100%;
   background-color: #ffffff;
   border-radius: 24px 24px 0 0;
-  overflow-y: auto; 
+  overflow-y: auto;
   transition: height 0.3s ease-in-out;
-  height: var(--bottomSheetHeight); 
+  height: var(--bottomSheetHeight);
   z-index: 10;
   margin-bottom: 30px;
 }
@@ -372,7 +372,7 @@
 
 /* 좋아요 배경 */
 .likeBackground {
-  width: calc(2.5rem + 2.0vw);
+  width: calc(2.5rem + 2vw);
   height: calc(1.8rem + 1.2vw);
   border-radius: 12px;
   background: #a9f3b2; /* 배경 색상 */

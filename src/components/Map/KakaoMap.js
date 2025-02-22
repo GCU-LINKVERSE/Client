@@ -21,7 +21,7 @@ const KakaoMap = ({
   const [placeMarker, setPlaceMarker] = useState(null)
   const [currentMarker, setCurrentMarker] = useState(null)
   const [originalPosition, setOriginalPosition] = useState(null)
-  onMoveToCurrentLocation?.();
+  onMoveToCurrentLocation?.()
 
   // 지도 초기화
   useEffect(() => {
@@ -96,8 +96,7 @@ const KakaoMap = ({
               ? '/cafe_location.svg'
               : selectedPlace.category === 2
                 ? '/game_location.svg'
-                :'/campus_location.svg'
-
+                : '/campus_location.svg'
 
         const markerImage = new window.kakao.maps.MarkerImage(
           markerImageSrc,

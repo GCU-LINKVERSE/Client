@@ -13,34 +13,52 @@ import { useNavigation } from '@/hooks/useNavigation'
 import StoreInfo from '@/components/Place/StoreInfo'
 import StoreInfoCampus from '@/components/Place/StoreInfoCampus'
 import StoreInfoReservation from '@/components/Place/StoreInfoReservation'
-import useTimeParser from '@/hooks/useTimeParser';
-
+import useTimeParser from '@/hooks/useTimeParser'
 
 interface PlaceDetailProps {
   placeData: Place
 }
 
-const getStoreInfoComponent = (category: number, phoneNumber: string | null) => {
-    if (category === 0 || category === 1 || category === 2) return StoreInfo
-    if (category === 3) {
-      return phoneNumber === null ? StoreInfoCampus : StoreInfoReservation
-    }
-    return StoreInfo
+const getStoreInfoComponent = (
+  category: number,
+  phoneNumber: string | null,
+) => {
+  if (category === 0 || category === 1 || category === 2) return StoreInfo
+  if (category === 3) {
+    return phoneNumber === null ? StoreInfoCampus : StoreInfoReservation
   }
+  return StoreInfo
+}
 
 const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
-  const { bottomSheetState, handleStart, handleMove, handleEnd, setBottomSheetState } = useBottomSheet()
+  const {
+    bottomSheetState,
+    handleStart,
+    handleMove,
+    handleEnd,
+    setBottomSheetState,
+  } = useBottomSheet()
   const { activeFilters } = usePlaceFilters(placeData)
-  const { liked, likeCount, handleLikeButtonClick } = useLikeSystem(Number(placeData.id))
-  const { handleBackClick, handleCloseClick } = useNavigation(setBottomSheetState)
-  const StoreInfoComponent = getStoreInfoComponent(placeData.category, placeData.phoneNumber)
-  const { todayEntry } = useTimeParser(placeData.time);
+  const { liked, likeCount, handleLikeButtonClick } = useLikeSystem(
+    Number(placeData.id),
+  )
+  const { handleBackClick, handleCloseClick } =
+    useNavigation(setBottomSheetState)
+  const StoreInfoComponent = getStoreInfoComponent(
+    placeData.category,
+    placeData.phoneNumber,
+  )
+  const { todayEntry } = useTimeParser(placeData.time)
   const [activeTab, setActiveTab] = useState<'상세' | '사진'>('상세')
 
   return (
     <div className={styles['detail-container']}>
       <div className={`${styles['map-container']} ${styles[bottomSheetState]}`}>
-        <KakaoMap bottomSheetState={bottomSheetState} selectedPlace={placeData} onMoveToCurrentLocation={() => {}} />
+        <KakaoMap
+          bottomSheetState={bottomSheetState}
+          selectedPlace={placeData}
+          onMoveToCurrentLocation={() => {}}
+        />
         {/* 뒤로가기 버튼 */}
         <div
           className={styles.backButton}
@@ -52,7 +70,7 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
             className={styles.backIcon}
           />
         </div>
-        
+
         {/* 창닫기 버튼 */}
         <div
           className={styles.closeButton}
@@ -68,16 +86,32 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
 
       {bottomSheetState === 'expanded' && (
         <div className={styles['top-buttons']}>
-          <button className={styles['top-left-button']} onClick={handleBackClick}>
-            <img src="/arrow_back_ios.svg" alt="뒤로가기" style={{ width: '28px', height: '28px' }} />
+          <button
+            className={styles['top-left-button']}
+            onClick={handleBackClick}
+          >
+            <img
+              src="/arrow_back_ios.svg"
+              alt="뒤로가기"
+              style={{ width: '28px', height: '28px' }}
+            />
           </button>
-          <button className={styles['top-right-button']} onClick={handleCloseClick}>
-            <img src="/close_ios.svg" alt="닫기" style={{ width: '28px', height: '28px' }} />
+          <button
+            className={styles['top-right-button']}
+            onClick={handleCloseClick}
+          >
+            <img
+              src="/close_ios.svg"
+              alt="닫기"
+              style={{ width: '28px', height: '28px' }}
+            />
           </button>
         </div>
       )}
 
-      <div className={`${styles.bottomSheetTopRightButton} ${styles[bottomSheetState]}`}>
+      <div
+        className={`${styles.bottomSheetTopRightButton} ${styles[bottomSheetState]}`}
+      >
         <img
           src="/path.svg"
           alt="Path Icon"
@@ -101,7 +135,10 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
             <div className={styles.cardHeader}>
               <h3 className={styles.cardTitle}>{placeData.name}</h3>
               <div className={styles.likes}>
-                <div className={`${styles.likeBackground} ${liked ? styles.liked : ''}`} onClick={handleLikeButtonClick}>
+                <div
+                  className={`${styles.likeBackground} ${liked ? styles.liked : ''}`}
+                  onClick={handleLikeButtonClick}
+                >
                   <div className={styles.likeIcon}></div>
                 </div>
                 <span>{likeCount}명</span>
@@ -110,7 +147,9 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
 
             <div className={styles.tags}>
               {activeFilters.map((filter, index) => (
-                <span key={index} className={styles.tag}>{filter}</span>
+                <span key={index} className={styles.tag}>
+                  {filter}
+                </span>
               ))}
             </div>
 
@@ -150,43 +189,42 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
                     letterSpacing: '-0.5px',
                   }}
                 >
-                  {placeData.time && placeData.time.startsWith('월') ? (
-                    todayEntry ? todayEntry.hours : '운영 정보 없음'
-                  ) : (
-                    '상세보기'
-                  )}
+                  {placeData.time && placeData.time.startsWith('월')
+                    ? todayEntry
+                      ? todayEntry.hours
+                      : '운영 정보 없음'
+                    : '상세보기'}
                 </p>
               </div>
               <button
                 style={{
-                  backgroundColor: "#61C56C",
-                  color: "#FFFFFF",
-                  border: "none",
-                  borderRadius: "24px",
-                  padding: "8px 16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  cursor: placeData.phoneNumber ? "pointer" : "default",
-                  width: "92px",
-                  height: "44px",
+                  backgroundColor: '#61C56C',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '24px',
+                  padding: '8px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  cursor: placeData.phoneNumber ? 'pointer' : 'default',
+                  width: '92px',
+                  height: '44px',
                 }}
                 onClick={() => {
                   if (placeData.phoneNumber) {
-                    window.location.href = `tel:${placeData.phoneNumber}`;
+                    window.location.href = `tel:${placeData.phoneNumber}`
                   }
                 }}
-                disabled={!placeData.phoneNumber} 
+                disabled={!placeData.phoneNumber}
               >
                 <img
                   src="/call.svg"
                   alt="Call Icon"
-                  style={{ width: "36px", height: "36px" }}
+                  style={{ width: '36px', height: '36px' }}
                 />
               </button>
             </div>
-
           </div>
         )}
 
@@ -232,19 +270,21 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
 
                 {/* 채워지지 않은 자리에 no_image.png 추가 */}
                 {placeData.pictures.length < 5 &&
-                  Array.from({ length: 5 - placeData.pictures.length }).map((_, index) => (
-                    <div
-                      key={index + placeData.pictures.length}
-                      className={styles['gallery-small']}
-                      style={{ position: 'relative' }}
-                    >
-                      <img
-                        src="/no_image.png"
-                        alt={`No Image ${index}`}
-                        className={styles['gallery-image']}
-                      />
-                    </div>
-                  ))}
+                  Array.from({ length: 5 - placeData.pictures.length }).map(
+                    (_, index) => (
+                      <div
+                        key={index + placeData.pictures.length}
+                        className={styles['gallery-small']}
+                        style={{ position: 'relative' }}
+                      >
+                        <img
+                          src="/no_image.png"
+                          alt={`No Image ${index}`}
+                          className={styles['gallery-image']}
+                        />
+                      </div>
+                    ),
+                  )}
               </div>
             </div>
 
@@ -253,7 +293,10 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
                 <div className={styles.cardHeader}>
                   <h3 className={styles.cardTitle}>{placeData.name}</h3>
                   <div className={styles.likes}>
-                    <div className={`${styles.likeBackground} ${liked ? styles.liked : ''}`} onClick={handleLikeButtonClick}>
+                    <div
+                      className={`${styles.likeBackground} ${liked ? styles.liked : ''}`}
+                      onClick={handleLikeButtonClick}
+                    >
                       <div className={styles.likeIcon}></div>
                     </div>
                     <span>{likeCount}명</span>
@@ -262,7 +305,9 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
 
                 <div className={styles.tags}>
                   {activeFilters.map((filter, index) => (
-                    <span key={index} className={styles.tag}>{filter}</span>
+                    <span key={index} className={styles.tag}>
+                      {filter}
+                    </span>
                   ))}
                 </div>
 
@@ -272,9 +317,7 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
                     <div
                       key={tab}
                       className={`${styles.tab} ${activeTab === tab ? styles.selected : ''}`}
-                      onClick={() =>
-                        setActiveTab(tab as '상세' | '사진')
-                      }
+                      onClick={() => setActiveTab(tab as '상세' | '사진')}
                     >
                       {tab}
                     </div>
@@ -290,12 +333,12 @@ const PlaceDetail = ({ placeData }: PlaceDetailProps) => {
                     className={styles.cardContainer}
                     style={{ marginBottom: '10px' }}
                   >
-                   <StoreInfoComponent selectedPlace={placeData} />
+                    <StoreInfoComponent selectedPlace={placeData} />
                     {/* <div style={{ marginTop: '40px' }}>
                       <SectionTitle title="인기 메뉴" />
                     </div> 
                     <Menu selectedPlace={placeData} /> */}
-                    <div style={{marginTop:'20px'}}>
+                    <div style={{ marginTop: '20px' }}>
                       <SectionTitle title="방문자 사진" />
                     </div>
                     <VisitorPhoto selectedPlace={placeData.pictures} />

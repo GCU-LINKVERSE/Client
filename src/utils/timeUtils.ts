@@ -9,18 +9,20 @@ interface ProcessedTimeSlot {
   count: number
 }
 
-export const processTimeSlots = (timeSlots: TimeSlot[]): { [key: number]: ProcessedTimeSlot[] } => {
+export const processTimeSlots = (
+  timeSlots: TimeSlot[],
+): { [key: number]: ProcessedTimeSlot[] } => {
   const grid: { [key: number]: ProcessedTimeSlot[] } = {}
-  
+
   const timeToRow = (time: string): number => {
     const [hours, minutes] = time.split(':').map(Number)
     return hours + (minutes >= 30 ? 0.5 : 0)
   }
 
-  timeSlots.forEach(slot => {
+  timeSlots.forEach((slot) => {
     const startRow = timeToRow(slot.start)
     const endRow = timeToRow(slot.end)
-    
+
     for (let row = startRow; row < endRow; row += 0.5) {
       if (row >= 0 && row < 24) {
         if (!grid[row]) {
@@ -28,7 +30,7 @@ export const processTimeSlots = (timeSlots: TimeSlot[]): { [key: number]: Proces
         }
         grid[row].push({
           row,
-          count: slot.selectedBy.length
+          count: slot.selectedBy.length,
         })
       }
     }
@@ -37,7 +39,13 @@ export const processTimeSlots = (timeSlots: TimeSlot[]): { [key: number]: Proces
   return grid
 }
 
-export const getMaxOverlap = (processedSlots: { [key: number]: ProcessedTimeSlot[] }): number => {
-  return Math.max(...Object.values(processedSlots).flat().map(slot => slot.count), 1)
+export const getMaxOverlap = (processedSlots: {
+  [key: number]: ProcessedTimeSlot[]
+}): number => {
+  return Math.max(
+    ...Object.values(processedSlots)
+      .flat()
+      .map((slot) => slot.count),
+    1,
+  )
 }
-

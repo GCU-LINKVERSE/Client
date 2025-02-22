@@ -3,12 +3,10 @@
 import React, { useState } from 'react'
 import KakaoMap from '@/components/Map/KakaoMap' // KakaoMap 컴포넌트 임포트
 import { Place } from '@/types/place'
-import useTimeParser from "@/hooks/useTimeParser"
+import useTimeParser from '@/hooks/useTimeParser'
 
 const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
-
   const { todayEntry, otherEntries } = useTimeParser(selectedPlace?.time)
-
 
   const [activeDropdown, setActiveDropdown] = useState<
     'time' | 'capacity' | null
@@ -65,11 +63,11 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
                 margin: 0,
               }}
             >
-             {selectedPlace.time && !selectedPlace.time.startsWith('월') ? (
-                '상세보기'
-              ) : (
-                todayEntry ? todayEntry.hours : '운영 정보 없음'
-              )}
+              {selectedPlace.time && !selectedPlace.time.startsWith('월')
+                ? '상세보기'
+                : todayEntry
+                  ? todayEntry.hours
+                  : '운영 정보 없음'}
             </p>
             <img
               src={
@@ -135,29 +133,29 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
         <button
           style={{
             backgroundColor: '#AFAFAF',
-            color: "#FFFFFF",
-            border: "none",
-            borderRadius: "24px",
-            padding: "8px 16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-            cursor: selectedPlace.phoneNumber ? "pointer" : "default",
-            width: "92px",
-            height: "44px",
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '24px',
+            padding: '8px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            cursor: selectedPlace.phoneNumber ? 'pointer' : 'default',
+            width: '92px',
+            height: '44px',
           }}
           onClick={() => {
             if (selectedPlace.phoneNumber) {
-              window.location.href = `${selectedPlace.phoneNumber}`;
+              window.location.href = `${selectedPlace.phoneNumber}`
             }
           }}
-          disabled={!selectedPlace.phoneNumber} 
+          disabled={!selectedPlace.phoneNumber}
         >
           <img
             src="/call.svg"
             alt="Call Icon"
-            style={{ width: "36px", height: "36px" }}
+            style={{ width: '36px', height: '36px' }}
           />
         </button>
       </div>
@@ -185,7 +183,14 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
             <>
               <p>
                 {selectedPlace.time.split('\n').map((line, index) => (
-                  <div key={index} style={{ lineHeight: '20 px', fontWeight: 'normal' , fontFamily: 'Pretendard, sans-serif' }}>
+                  <div
+                    key={index}
+                    style={{
+                      lineHeight: '20 px',
+                      fontWeight: 'normal',
+                      fontFamily: 'Pretendard, sans-serif',
+                    }}
+                  >
                     {line}
                   </div>
                 ))}
@@ -195,10 +200,17 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
             <>
               {todayEntry ? (
                 <p>
-                  {todayEntry.day}({new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })}) {todayEntry.hours}
+                  {todayEntry.day}(
+                  {new Date().toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                  })}
+                  ) {todayEntry.hours}
                 </p>
               ) : (
-                <p style={{ fontWeight: 'bold', color: '#FF0000' }}>오늘 운영 정보 없음</p>
+                <p style={{ fontWeight: 'bold', color: '#FF0000' }}>
+                  오늘 운영 정보 없음
+                </p>
               )}
               {otherEntries.map((entry) => (
                 <p key={entry.day} style={{ color: '#AFAFAF' }}>
@@ -227,7 +239,7 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
           <div
             style={{
               width: '100%',
-              height: '200px', 
+              height: '200px',
               position: 'relative',
             }}
           >

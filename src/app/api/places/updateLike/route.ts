@@ -1,57 +1,60 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export async function POST(req: Request) {
-  const { placeId, liked } = await req.json(); 
+  const { placeId, liked } = await req.json()
 
   if (!API_BASE_URL) {
-    console.error('API_BASE_URL is not defined in environment variables.');
+    console.error('API_BASE_URL is not defined in environment variables.')
     return NextResponse.json(
       { success: false, error: 'API_BASE_URL is not configured' },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 
   if (!placeId || typeof liked !== 'boolean') {
-    console.error('Invalid placeId or liked status:', { placeId, liked });
+    console.error('Invalid placeId or liked status:', { placeId, liked })
     return NextResponse.json(
       { success: false, error: 'placeId and liked status are required' },
-      { status: 400 }
-    );
+      { status: 400 },
+    )
   }
 
   try {
     const url = liked
       ? `${API_BASE_URL}/api/place/like/like`
-      : `${API_BASE_URL}/api/place/like/unlike`;
+      : `${API_BASE_URL}/api/place/like/unlike`
 
-    const body = new URLSearchParams();
-    body.append('placeId', placeId.toString());
+    const body = new URLSearchParams()
+    body.append('placeId', placeId.toString())
 
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       credentials: 'include', // 쿠키 포함
       body: body.toString(),
-    });
+    })
 
     if (!response.ok) {
       console.error(
-        `Failed to update like status for placeId ${placeId}. HTTP Status: ${response.status}`
-      );
+        `Failed to update like status for placeId ${placeId}. HTTP Status: ${response.status}`,
+      )
       return NextResponse.json(
-        { success: false, error: `Failed to update like status. Status: ${response.status}` },
-        { status: response.status }
-      );
+        {
+          success: false,
+          error: `Failed to update like status. Status: ${response.status}`,
+        },
+        { status: response.status },
+      )
     }
 
-    return NextResponse.json({ success: true, data: !liked });
+    return NextResponse.json({ success: true, data: !liked })
   } catch (error) {
-    console.error('Error updating like status:', error);
+    console.error('Error updating like status:', error)
     return NextResponse.json(
       { success: false, error: 'Server error' },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }
