@@ -106,11 +106,12 @@ export default function Home() {
 
       {/* Bottom Sheet */}
       <div
-        className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl transition-transform duration-300"
+        className="fixed bottom-0 bg-white rounded-t-3xl transition-transform duration-300"
         style={{
-          transform: isSheetExpanded
-            ? 'translateY(0)'
-            : 'translateY(calc(100% - 42px))',
+          maxWidth: '600px',
+          width: '100%', 
+          left: '50%', 
+          transform: `translateX(-50%) ${isSheetExpanded ? 'translateY(0)' : 'translateY(calc(100% - 42px))'}`, 
           boxShadow: '0 -4px 6px rgba(0, 0, 0, 0.1)',
         }}
         onTouchStart={(e) => handleStart(e.touches[0].clientY)} // 모바일 터치
