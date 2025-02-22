@@ -145,6 +145,13 @@ const StoreInfo = ({ selectedPlace }: { selectedPlace: Place }) => {
             width: '55%',
             height: '60px',
           }}
+
+          onClick={() => {
+            if (selectedPlace.phoneNumber) {
+              window.location.href = `${selectedPlace.phoneNumber}`
+            }
+          }}
+          disabled={!selectedPlace.phoneNumber}
         >
           <img
             src="/reservation.svg"
